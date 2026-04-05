@@ -2,6 +2,7 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const { run, get, all, initDb } = require("./db");
+const { hashPassword, verifyPassword, isHashedPassword } = require("./security");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,8 +23,15 @@ const toUser = (u) => ({
 
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await get("SELECT * FROM users WHERE email = ? AND password = ?", [email, password]);
-  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  const user = await get("SELECT * FROM users WHERE email = ?", [email]);
+  if (!user || !verifyPassword(password, user.password)) return res.status(401).json({ message: "Invalid credentials" });
+
+  if (!isHashedPassword(user.password)) {
+    const upgraded = hashPassword(password);
+    await run("UPDATE users SET password = ? WHERE id = ?", [upgraded, user.id]);
+    user.password = upgraded;
+  }
+
   return res.json(toUser(user));
 });
 
@@ -36,7 +44,7 @@ app.post("/api/auth/signup", async (req, res) => {
 
   const result = await run(
     "INSERT INTO users(name, email, phone, password, role, verified) VALUES (?, ?, ?, ?, 'user', 0)",
-    [name, email, phone || "", password]
+    [name, email, phone || "", hashPassword(password)]
   );
 
   const user = await get("SELECT * FROM users WHERE id = ?", [result.id]);

@@ -27,3 +27,9 @@ Server runs on `http://localhost:3000` and serves frontend static files from rep
 - `POST /api/bookings`
 - `PATCH /api/bookings/:id/status`
 - `GET /api/admin/overview`
+
+
+## Password Security
+
+- Passwords are stored as salted PBKDF2 hashes (`sha512`, 100,000 iterations).
+- Existing legacy plaintext demo passwords are auto-upgraded to hashed format on startup/login.

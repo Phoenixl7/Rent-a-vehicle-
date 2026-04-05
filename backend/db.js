@@ -1,5 +1,6 @@
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
+const { hashPassword, isHashedPassword } = require("./security");
 
 const dbPath = path.join(__dirname, "rental.db");
 const db = new sqlite3.Database(dbPath);
@@ -23,6 +24,15 @@ function all(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
   });
+}
+
+async function ensureHashedUserPassword(email, plainPassword) {
+  const row = await get("SELECT id, password FROM users WHERE email = ?", [email]);
+  if (!row) return;
+  if (isHashedPassword(row.password)) return;
+  if (row.password === plainPassword) {
+    await run("UPDATE users SET password = ? WHERE id = ?", [hashPassword(plainPassword), row.id]);
+  }
 }
 
 async function initDb() {
@@ -68,7 +78,7 @@ async function initDb() {
   if (!admin) {
     await run(
       "INSERT INTO users(name, email, password, phone, role, verified) VALUES (?, ?, ?, ?, ?, ?)",
-      ["Admin", "admin@vehicle.com", "admin123", "+91 10022 23344", "admin", 1]
+      ["Admin", "admin@vehicle.com", hashPassword("admin123"), "+91 10022 23344", "admin", 1]
     );
   }
 
@@ -76,9 +86,12 @@ async function initDb() {
   if (!demoUser) {
     await run(
       "INSERT INTO users(name, email, password, phone, role, verified) VALUES (?, ?, ?, ?, ?, ?)",
-      ["John Rider", "user@vehicle.com", "user123", "+91 33344 45555", "user", 0]
+      ["John Rider", "user@vehicle.com", hashPassword("user123"), "+91 33344 45555", "user", 0]
     );
   }
+
+  await ensureHashedUserPassword("admin@vehicle.com", "admin123");
+  await ensureHashedUserPassword("user@vehicle.com", "user123");
 
   const vehicleCount = await get("SELECT COUNT(*) as count FROM vehicles");
   if (!vehicleCount || vehicleCount.count === 0) {
