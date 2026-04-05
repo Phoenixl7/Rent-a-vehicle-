@@ -6,10 +6,10 @@ const storageKeys = {
 };
 
 const defaultVehicles = [
-  { id: "v1", name: "Tesla Model Y", type: "SUV", price: 129, image: "⚡", seats: 5, fuel: "Electric", transmission: "Automatic", description: "Futuristic electric SUV with long range and autopilot-ready comfort." },
-  { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 149, image: "🚘", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance." },
-  { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 99, image: "🚙", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys." },
-  { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 179, image: "✨", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling." },
+  { id: "v1", name: "Tesla Model Y", type: "SUV", price: 8999, image: "⚡", seats: 5, fuel: "Electric", transmission: "Automatic", description: "Futuristic electric SUV with long range and autopilot-ready comfort." },
+  { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 10999, image: "🚘", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance." },
+  { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 6499, image: "🚙", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys." },
+  { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 12999, image: "✨", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling." },
 ];
 
 function getData(key, fallback = []) {
@@ -18,6 +18,14 @@ function getData(key, fallback = []) {
 
 function setData(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(Number(amount) || 0);
 }
 
 function updateUserRecord(userId, patch) {
@@ -38,8 +46,8 @@ function initData() {
   const users = getData(storageKeys.users, []);
   if (!users.length) {
     setData(storageKeys.users, [
-      { id: "u1", name: "Admin", email: "admin@vehicle.com", password: "admin123", role: "admin", phone: "+1 100 222 3344", verified: true, licensePhoto: null },
-      { id: "u2", name: "John Rider", email: "user@vehicle.com", password: "user123", role: "user", phone: "+1 333 444 5555", verified: false, licensePhoto: null },
+      { id: "u1", name: "Admin", email: "admin@vehicle.com", password: "admin123", role: "admin", phone: "+91 10022 23344", verified: true, licensePhoto: null },
+      { id: "u2", name: "John Rider", email: "user@vehicle.com", password: "user123", role: "user", phone: "+91 33344 45555", verified: false, licensePhoto: null },
     ]);
   }
 
@@ -127,18 +135,44 @@ function bindSessionUi() {
   document.getElementById("logoutBtn").addEventListener("click", logout);
 }
 
+function applyVehicleFilters(vehicles) {
+  const searchValue = (document.getElementById("vehicleSearch")?.value || "").trim().toLowerCase();
+  const sortValue = document.getElementById("vehicleSort")?.value || "featured";
+
+  let filtered = vehicles.filter((v) => {
+    if (!searchValue) return true;
+    return [v.name, v.type, v.fuel, v.transmission].join(" ").toLowerCase().includes(searchValue);
+  });
+
+  if (sortValue === "price-asc") filtered.sort((a, b) => a.price - b.price);
+  if (sortValue === "price-desc") filtered.sort((a, b) => b.price - a.price);
+  if (sortValue === "name-asc") filtered.sort((a, b) => a.name.localeCompare(b.name));
+  if (sortValue === "name-desc") filtered.sort((a, b) => b.name.localeCompare(a.name));
+
+  return filtered;
+}
+
 function renderVehicles() {
   const wrap = document.getElementById("vehicleGrid");
   if (!wrap) return;
-  const vehicles = getData(storageKeys.vehicles);
-  wrap.innerHTML = vehicles.map((v) => `
-    <div class="card">
-      <h3>${v.image} ${v.name}</h3>
-      <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p>
-      <p>$${v.price}/day</p>
-      <a class="btn btn-primary" href="vehicle-details.html?id=${v.id}">View Details</a>
-    </div>
-  `).join("");
+
+  const draw = () => {
+    const vehicles = applyVehicleFilters(getData(storageKeys.vehicles));
+    wrap.innerHTML = vehicles.length
+      ? vehicles.map((v) => `
+          <div class="card">
+            <h3>${v.image} ${v.name}</h3>
+            <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p>
+            <p>${formatCurrency(v.price)}/day</p>
+            <a class="btn btn-primary" href="vehicle-details.html?id=${v.id}">View Details</a>
+          </div>
+        `).join("")
+      : `<div class="card"><p>No vehicles found for your search/filter.</p></div>`;
+  };
+
+  document.getElementById("vehicleSearch")?.addEventListener("input", draw);
+  document.getElementById("vehicleSort")?.addEventListener("change", draw);
+  draw();
 }
 
 function getVehicleById(id) {
@@ -161,7 +195,7 @@ function renderVehicleDetails() {
       <p><strong>Transmission:</strong> ${v.transmission}</p>
       <p><strong>Seats:</strong> ${v.seats}</p>
       <p><strong>Fuel:</strong> ${v.fuel}</p>
-      <h3>$${v.price}/day</h3>
+      <h3>${formatCurrency(v.price)}/day</h3>
       <a href="booking.html" class="btn btn-primary">Book Now</a>
     </div>
   `;
@@ -181,7 +215,7 @@ function bookingPage() {
 
   const selectedId = localStorage.getItem("vr_selected_vehicle") || getData(storageKeys.vehicles)[0].id;
   const vehicle = getVehicleById(selectedId);
-  document.getElementById("bookingVehicle").textContent = `${vehicle.name} ($${vehicle.price}/day)`;
+  document.getElementById("bookingVehicle").textContent = `${vehicle.name} (${formatCurrency(vehicle.price)}/day)`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -216,7 +250,7 @@ function paymentPage() {
 
   const draft = JSON.parse(localStorage.getItem("vr_draft_booking") || "null");
   if (!draft) return (location.href = "vehicles.html");
-  document.getElementById("paymentSummary").textContent = `${draft.vehicleName}: $${draft.total}`;
+  document.getElementById("paymentSummary").textContent = `${draft.vehicleName}: ${formatCurrency(draft.total)}`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -279,7 +313,7 @@ function renderMyBookings() {
     <tr>
       <td>${b.vehicleName}</td>
       <td>${b.startDate} → ${b.endDate}</td>
-      <td>$${b.total}</td>
+      <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>${b.payment}</td>
     </tr>
@@ -325,13 +359,13 @@ function adminPage() {
 
   document.getElementById("kpiUsers").textContent = users.length;
   document.getElementById("kpiBookings").textContent = bookings.length;
-  document.getElementById("kpiRevenue").textContent = `$${revenue}`;
+  document.getElementById("kpiRevenue").textContent = formatCurrency(revenue);
 
   document.getElementById("vehicleAdminRows").innerHTML = vehicles.map((v) => `
     <tr>
       <td>${v.name}</td>
       <td>${v.type}</td>
-      <td>$${v.price}</td>
+      <td>${formatCurrency(v.price)}</td>
       <td>
         <button class="btn" onclick="editVehicle('${v.id}')">Edit</button>
         <button class="btn btn-danger" onclick="deleteVehicle('${v.id}')">Delete</button>
@@ -343,7 +377,7 @@ function adminPage() {
     <tr>
       <td>${b.userName}</td>
       <td>${b.vehicleName}</td>
-      <td>$${b.total}</td>
+      <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>
         <button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>

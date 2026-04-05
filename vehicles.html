@@ -1,4 +1,17 @@
 <!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Vehicles</title><link rel="stylesheet" href="assets/styles.css"></head><body>
 <header class="navbar"><div class="container nav-content"><a class="logo" href="index.html"> DriveRent</a><nav class="nav-links"><a href="index.html">Home</a><a href="my-bookings.html">My Bookings</a></nav><div id="sessionArea"></div></div></header>
-<main class="container section"><h2>Vehicle Listing</h2><div id="vehicleGrid" class="grid grid-3"></div></main>
+<main class="container section">
+  <h2>Vehicle Listing</h2>
+  <div class="grid" style="grid-template-columns:2fr 1fr;margin-bottom:14px;">
+    <input id="vehicleSearch" placeholder="Search by name, type, fuel or transmission">
+    <select id="vehicleSort">
+      <option value="featured">Sort: Featured</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="name-asc">Name: A to Z</option>
+      <option value="name-desc">Name: Z to A</option>
+    </select>
+  </div>
+  <div id="vehicleGrid" class="grid grid-3"></div>
+</main>
 <script src="assets/app.js"></script></body></html>
