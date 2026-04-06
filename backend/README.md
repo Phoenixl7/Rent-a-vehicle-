@@ -33,3 +33,8 @@ Server runs on `http://localhost:3000` and serves frontend static files from rep
 
 - Passwords are stored as salted PBKDF2 hashes (`sha512`, 100,000 iterations).
 - Existing legacy plaintext demo passwords are auto-upgraded to hashed format on startup/login.
+
+
+## Dependency note
+
+- Backend uses `better-sqlite3` to avoid the deprecated transitive dependency chain from `sqlite3` (`inflight`, `npmlog`, `gauge`, `glob@7`, etc.).

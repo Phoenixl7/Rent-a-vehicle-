@@ -1,29 +1,27 @@
 const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+const Database = require("better-sqlite3");
 const { hashPassword, isHashedPassword } = require("./security");
 
 const dbPath = path.join(__dirname, "rental.db");
-const db = new sqlite3.Database(dbPath);
+const db = new Database(dbPath);
+db.pragma("journal_mode = WAL");
 
 function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve({ id: this.lastID, changes: this.changes });
-    });
-  });
+  const stmt = db.prepare(sql);
+  const info = stmt.run(params);
+  return Promise.resolve({ id: Number(info.lastInsertRowid || 0), changes: info.changes });
 }
 
 function get(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
-  });
+  const stmt = db.prepare(sql);
+  const row = stmt.get(params);
+  return Promise.resolve(row);
 }
 
 function all(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
-  });
+  const stmt = db.prepare(sql);
+  const rows = stmt.all(params);
+  return Promise.resolve(rows);
 }
 
 async function ensureHashedUserPassword(email, plainPassword) {
