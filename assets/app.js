@@ -289,8 +289,8 @@ function renderVerification(user) {
     uploadWrap.style.display = "block";
   }
 
-  preview.innerHTML = user.licensePhoto
-    ? `<img src="${user.licensePhoto}" alt="Driving License" style="max-width:300px;border-radius:12px;border:1px solid var(--border);"/>`
+  preview.innerHTML = user.verified
+    ? `<p class="small">Driving license is verified and hidden for privacy.</p>`
     : `<p class="small">No license photo uploaded yet.</p>`;
 
   uploadForm.addEventListener("submit", (e) => {
@@ -309,7 +309,7 @@ function renderVerification(user) {
         document.getElementById("verificationBanner").style.display = "block";
         status.innerHTML = `<span class="status approved">Verified</span> Your account is already verified.`;
         uploadWrap.style.display = "none";
-        preview.innerHTML = `<img src="${updated.licensePhoto}" alt="Driving License" style="max-width:300px;border-radius:12px;border:1px solid var(--border);"/>`;
+        preview.innerHTML = `<p class="small">Driving license is verified and hidden for privacy.</p>`;
       }
     };
     reader.readAsDataURL(file);
@@ -417,23 +417,36 @@ function adminPage() {
   vehicleForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("vehicleId").value || `v${Date.now()}`;
-    const payload = {
-      id,
-      image: document.getElementById("vehicleImage").value || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80",
-      name: document.getElementById("vehicleName").value,
-      type: document.getElementById("vehicleType").value,
-      price: Number(document.getElementById("vehiclePrice").value),
-      seats: Number(document.getElementById("vehicleSeats").value),
-      fuel: document.getElementById("vehicleFuel").value,
-      transmission: document.getElementById("vehicleTransmission").value,
-      description: document.getElementById("vehicleDescription").value,
+    const existingImage = document.getElementById("vehicleImageExisting").value;
+    const imageFile = document.getElementById("vehicleImageFile").files[0];
+
+    const saveVehicle = (imageData) => {
+      const payload = {
+        id,
+        image: imageData || existingImage || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80",
+        name: document.getElementById("vehicleName").value,
+        type: document.getElementById("vehicleType").value,
+        price: Number(document.getElementById("vehiclePrice").value),
+        seats: Number(document.getElementById("vehicleSeats").value),
+        fuel: document.getElementById("vehicleFuel").value,
+        transmission: document.getElementById("vehicleTransmission").value,
+        description: document.getElementById("vehicleDescription").value,
+      };
+
+      const list = getData(storageKeys.vehicles);
+      const idx = list.findIndex((v) => v.id === id);
+      if (idx >= 0) list[idx] = payload; else list.push(payload);
+      setData(storageKeys.vehicles, list);
+      location.reload();
     };
 
-    const list = getData(storageKeys.vehicles);
-    const idx = list.findIndex((v) => v.id === id);
-    if (idx >= 0) list[idx] = payload; else list.push(payload);
-    setData(storageKeys.vehicles, list);
-    location.reload();
+    if (imageFile) {
+      const reader = new FileReader();
+      reader.onload = () => saveVehicle(reader.result);
+      reader.readAsDataURL(imageFile);
+    } else {
+      saveVehicle(existingImage);
+    }
   });
 }
 
@@ -441,7 +454,9 @@ function editVehicle(id) {
   const v = getVehicleById(id);
   if (!v) return;
   document.getElementById("vehicleId").value = v.id;
-  document.getElementById("vehicleImage").value = v.image;
+  document.getElementById("vehicleImageExisting").value = v.image;
+  document.getElementById("vehicleImagePreview").innerHTML = `<img src="${v.image}" alt="${v.name}" class="vehicle-thumb" style="max-width:220px;height:120px;"/>`;
+  document.getElementById("vehicleImageFile").value = "";
   document.getElementById("vehicleName").value = v.name;
   document.getElementById("vehicleType").value = v.type;
   document.getElementById("vehiclePrice").value = v.price;
