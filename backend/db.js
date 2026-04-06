@@ -1,27 +1,65 @@
+const fs = require("fs");
 const path = require("path");
-const Database = require("better-sqlite3");
+const initSqlJs = require("sql.js");
 const { hashPassword, isHashedPassword } = require("./security");
 
 const dbPath = path.join(__dirname, "rental.db");
-const db = new Database(dbPath);
-db.pragma("journal_mode = WAL");
+let SQL;
+let db;
 
-function run(sql, params = []) {
-  const stmt = db.prepare(sql);
-  const info = stmt.run(params);
-  return Promise.resolve({ id: Number(info.lastInsertRowid || 0), changes: info.changes });
+async function ensureDb() {
+  if (db) return db;
+
+  SQL = await initSqlJs({
+    locateFile: (file) => path.join(__dirname, "..", "node_modules", "sql.js", "dist", file),
+  });
+
+  if (fs.existsSync(dbPath)) {
+    const fileBuffer = fs.readFileSync(dbPath);
+    db = new SQL.Database(fileBuffer);
+  } else {
+    db = new SQL.Database();
+  }
+
+  return db;
 }
 
-function get(sql, params = []) {
-  const stmt = db.prepare(sql);
-  const row = stmt.get(params);
-  return Promise.resolve(row);
+function persistDb() {
+  if (!db) return;
+  const data = db.export();
+  fs.writeFileSync(dbPath, Buffer.from(data));
 }
 
-function all(sql, params = []) {
-  const stmt = db.prepare(sql);
-  const rows = stmt.all(params);
-  return Promise.resolve(rows);
+async function run(sql, params = []) {
+  const database = await ensureDb();
+  database.run(sql, params);
+  const idRow = database.exec("SELECT last_insert_rowid() as id");
+  const id = idRow?.[0]?.values?.[0]?.[0] || 0;
+  const chRow = database.exec("SELECT changes() as changes");
+  const changes = chRow?.[0]?.values?.[0]?.[0] || 0;
+  persistDb();
+  return { id, changes };
+}
+
+async function get(sql, params = []) {
+  const database = await ensureDb();
+  const stmt = database.prepare(sql, params);
+  const hasRow = stmt.step();
+  let row;
+  if (hasRow) row = stmt.getAsObject();
+  stmt.free();
+  return row;
+}
+
+async function all(sql, params = []) {
+  const database = await ensureDb();
+  const stmt = database.prepare(sql, params);
+  const rows = [];
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject());
+  }
+  stmt.free();
+  return rows;
 }
 
 async function ensureHashedUserPassword(email, plainPassword) {
@@ -34,6 +72,8 @@ async function ensureHashedUserPassword(email, plainPassword) {
 }
 
 async function initDb() {
+  await ensureDb();
+
   await run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -99,7 +139,7 @@ async function initDb() {
   await ensureHashedUserPassword("user@vehicle.com", "user123");
 
   const vehicleCount = await get("SELECT COUNT(*) as count FROM vehicles");
-  if (!vehicleCount || vehicleCount.count === 0) {
+  if (!vehicleCount || Number(vehicleCount.count) === 0) {
     const seedVehicles = [
       ["Tesla Model Y", "SUV", 8999, "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1200&q=80", 5, "Electric", "Automatic", "Futuristic electric SUV with long range and autopilot-ready comfort."],
       ["BMW 5 Series", "Sedan", 10999, "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=1200&q=80", 5, "Hybrid", "Automatic", "Executive sedan blending luxury with dynamic performance."],
@@ -116,4 +156,4 @@ async function initDb() {
   }
 }
 
-module.exports = { db, run, get, all, initDb };
+module.exports = { run, get, all, initDb };

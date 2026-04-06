@@ -37,4 +37,4 @@ Server runs on `http://localhost:3000` and serves frontend static files from rep
 
 ## Dependency note
 
-- Backend uses `better-sqlite3` to avoid the deprecated transitive dependency chain from `sqlite3` (`inflight`, `npmlog`, `gauge`, `glob@7`, etc.).
+- Backend uses `sql.js` (WASM SQLite) to avoid native compilation issues on Windows (node-gyp/Visual Studio) and deprecated native prebuild chains.
