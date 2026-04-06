@@ -230,9 +230,15 @@ function bookingPage() {
     e.preventDefault();
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
+    const addressLine1 = document.getElementById("addressLine1").value.trim();
+    const addressLine2 = document.getElementById("addressLine2").value.trim();
+    const deliveryCity = document.getElementById("deliveryCity").value.trim();
     const deliveryState = document.getElementById("deliveryState").value.trim();
-    const deliveryDistrict = document.getElementById("deliveryDistrict").value.trim();
     const deliveryPincode = document.getElementById("deliveryPincode").value.trim();
+
+    if (!/^\d{6}$/.test(deliveryPincode)) {
+      return alert("Pin code must be exactly 6 digits.");
+    }
     const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000));
     const total = days * vehicle.price;
 
@@ -244,8 +250,10 @@ function bookingPage() {
       vehicleName: vehicle.name,
       startDate,
       endDate,
+      addressLine1,
+      addressLine2,
+      deliveryCity,
       deliveryState,
-      deliveryDistrict,
       deliveryPincode,
       total,
       status: "pending",
@@ -265,7 +273,7 @@ function paymentPage() {
 
   const draft = JSON.parse(localStorage.getItem("vr_draft_booking") || "null");
   if (!draft) return (location.href = "vehicles.html");
-  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery: ${draft.deliveryDistrict || "N/A"}, ${draft.deliveryState || "N/A"} - ${draft.deliveryPincode || "N/A"}</span>`;
+  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery: ${draft.addressLine1 || ""}, ${draft.addressLine2 || ""}, ${draft.deliveryCity || ""}, ${draft.deliveryState || ""} - ${draft.deliveryPincode || "N/A"}</span>`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -334,7 +342,7 @@ function renderMyBookings() {
     <tr>
       <td>${b.vehicleName}</td>
       <td>${b.startDate} → ${b.endDate}</td>
-      <td>${(b.deliveryDistrict && b.deliveryState && b.deliveryPincode) ? `${b.deliveryDistrict}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
+      <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
       <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>${b.payment}</td>
@@ -399,7 +407,7 @@ function adminPage() {
     <tr>
       <td>${b.userName}</td>
       <td>${b.vehicleName}</td>
-      <td>${(b.deliveryDistrict && b.deliveryState && b.deliveryPincode) ? `${b.deliveryDistrict}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
+      <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
       <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>

@@ -125,19 +125,23 @@ app.get("/api/bookings", async (req, res) => {
 });
 
 app.post("/api/bookings", async (req, res) => {
-  const { userId, vehicleId, startDate, endDate, deliveryState, deliveryDistrict, deliveryPincode } = req.body;
+  const { userId, vehicleId, startDate, endDate, addressLine1, addressLine2, deliveryCity, deliveryState, deliveryPincode } = req.body;
   const user = await get("SELECT * FROM users WHERE id = ?", [userId]);
   const vehicle = await get("SELECT * FROM vehicles WHERE id = ?", [vehicleId]);
   if (!user || !vehicle) return res.status(404).json({ message: "User or vehicle not found" });
   if (!user.verified) return res.status(403).json({ message: "User must be verified before booking" });
+
+  if (!/^\d{6}$/.test(String(deliveryPincode || ""))) {
+    return res.status(400).json({ message: "Pin code must be exactly 6 digits" });
+  }
 
   const dayMs = 1000 * 60 * 60 * 24;
   const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / dayMs));
   const total = days * vehicle.price;
 
   const result = await run(
-    "INSERT INTO bookings(user_id, user_name, vehicle_id, vehicle_name, start_date, end_date, delivery_state, delivery_district, delivery_pincode, total, status, payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'paid')",
-    [user.id, user.name, vehicle.id, vehicle.name, startDate, endDate, deliveryState || "", deliveryDistrict || "", deliveryPincode || "", total]
+    "INSERT INTO bookings(user_id, user_name, vehicle_id, vehicle_name, start_date, end_date, address_line1, address_line2, delivery_city, delivery_state, delivery_pincode, total, status, payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'paid')",
+    [user.id, user.name, vehicle.id, vehicle.name, startDate, endDate, addressLine1 || "", addressLine2 || "", deliveryCity || "", deliveryState || "", deliveryPincode || "", total]
   );
 
   const booking = await get("SELECT * FROM bookings WHERE id = ?", [result.id]);
