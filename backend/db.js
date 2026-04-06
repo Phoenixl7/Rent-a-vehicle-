@@ -94,10 +94,10 @@ async function initDb() {
   const vehicleCount = await get("SELECT COUNT(*) as count FROM vehicles");
   if (!vehicleCount || vehicleCount.count === 0) {
     const seedVehicles = [
-      ["Tesla Model Y", "SUV", 8999, "⚡", 5, "Electric", "Automatic", "Futuristic electric SUV with long range and autopilot-ready comfort."],
-      ["BMW 5 Series", "Sedan", 10999, "🚘", 5, "Hybrid", "Automatic", "Executive sedan blending luxury with dynamic performance."],
-      ["Toyota Fortuner", "SUV", 6499, "🚙", 7, "Diesel", "Automatic", "Rugged family SUV ideal for city and off-road journeys."],
-      ["Mercedes C-Class", "Luxury", 12999, "✨", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."]
+      ["Tesla Model Y", "SUV", 8999, "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1200&q=80", 5, "Electric", "Automatic", "Futuristic electric SUV with long range and autopilot-ready comfort."],
+      ["BMW 5 Series", "Sedan", 10999, "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=1200&q=80", 5, "Hybrid", "Automatic", "Executive sedan blending luxury with dynamic performance."],
+      ["Toyota Fortuner", "SUV", 6499, "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=1200&q=80", 7, "Diesel", "Automatic", "Rugged family SUV ideal for city and off-road journeys."],
+      ["Mercedes C-Class", "Luxury", 12999, "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."]
     ];
 
     for (const v of seedVehicles) {

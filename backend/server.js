@@ -76,7 +76,7 @@ app.post("/api/vehicles", async (req, res) => {
   const { name, type, price, image, seats, fuel, transmission, description } = req.body;
   const result = await run(
     "INSERT INTO vehicles(name, type, price, image, seats, fuel, transmission, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    [name, type, price, image || "🚗", seats || 5, fuel || "Petrol", transmission || "Automatic", description || ""]
+    [name, type, price, image || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80", seats || 5, fuel || "Petrol", transmission || "Automatic", description || ""]
   );
   const row = await get("SELECT * FROM vehicles WHERE id = ?", [result.id]);
   res.status(201).json(row);

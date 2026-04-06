@@ -6,10 +6,10 @@ const storageKeys = {
 };
 
 const defaultVehicles = [
-  { id: "v1", name: "Tesla Model Y", type: "SUV", price: 8999, image: "⚡", seats: 5, fuel: "Electric", transmission: "Automatic", description: "Futuristic electric SUV with long range and autopilot-ready comfort." },
-  { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 10999, image: "🚘", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance." },
-  { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 6499, image: "🚙", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys." },
-  { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 12999, image: "✨", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling." },
+  { id: "v1", name: "Tesla Model Y", type: "SUV", price: 8999, image: "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1200&q=80", seats: 5, fuel: "Electric", transmission: "Automatic", description: "Futuristic electric SUV with long range and autopilot-ready comfort." },
+  { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 10999, image: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=1200&q=80", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance." },
+  { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 6499, image: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=1200&q=80", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys." },
+  { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 12999, image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling." },
 ];
 
 function getData(key, fallback = []) {
@@ -161,7 +161,7 @@ function renderVehicles() {
     wrap.innerHTML = vehicles.length
       ? vehicles.map((v) => `
           <div class="card">
-            <h3>${v.image} ${v.name}</h3>
+            <img class="vehicle-thumb" src="${v.image}" alt="${v.name}"><h3>${v.name}</h3>
             <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p>
             <p>${formatCurrency(v.price)}/day</p>
             <a class="btn btn-primary" href="vehicle-details.html?id=${v.id}">View Details</a>
@@ -189,7 +189,7 @@ function renderVehicleDetails() {
 
   target.innerHTML = `
     <div class="card">
-      <h2>${v.image} ${v.name}</h2>
+      <img class="vehicle-hero" src="${v.image}" alt="${v.name}"><h2>${v.name}</h2>
       <p>${v.description}</p>
       <p><strong>Type:</strong> ${v.type}</p>
       <p><strong>Transmission:</strong> ${v.transmission}</p>
@@ -401,7 +401,7 @@ function adminPage() {
     const id = document.getElementById("vehicleId").value || `v${Date.now()}`;
     const payload = {
       id,
-      image: document.getElementById("vehicleEmoji").value || "🚗",
+      image: document.getElementById("vehicleImage").value || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80",
       name: document.getElementById("vehicleName").value,
       type: document.getElementById("vehicleType").value,
       price: Number(document.getElementById("vehiclePrice").value),
@@ -423,7 +423,7 @@ function editVehicle(id) {
   const v = getVehicleById(id);
   if (!v) return;
   document.getElementById("vehicleId").value = v.id;
-  document.getElementById("vehicleEmoji").value = v.image;
+  document.getElementById("vehicleImage").value = v.image;
   document.getElementById("vehicleName").value = v.name;
   document.getElementById("vehicleType").value = v.type;
   document.getElementById("vehiclePrice").value = v.price;
