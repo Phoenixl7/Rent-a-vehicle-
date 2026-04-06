@@ -127,9 +127,13 @@ function bindSessionUi() {
     return;
   }
 
+  if (user.role === "admin") {
+    document.querySelectorAll('a[href="my-bookings.html"]').forEach((el) => el.remove());
+  }
+
   slot.innerHTML = `
     <span class="small">Hi, ${user.name}</span>
-    <a href="${user.role === "admin" ? "admin.html" : "my-bookings.html"}" class="btn">Dashboard</a>
+    <a href="${user.role === "admin" ? "admin.html" : "my-bookings.html"}" class="btn">${user.role === "admin" ? "Admin Panel" : "Dashboard"}</a>
     <button class="btn" id="logoutBtn">Logout</button>
   `;
   document.getElementById("logoutBtn").addEventListener("click", logout);
