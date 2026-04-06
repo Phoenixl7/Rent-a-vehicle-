@@ -1,7 +1,7 @@
 {
-  "name": "driverent",
+  "name": "rentavehicle",
   "version": "1.0.0",
-  "description": "DriveRent with Express + SQLite backend",
+  "description": "RentAVehicle with Express + SQLite backend",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",

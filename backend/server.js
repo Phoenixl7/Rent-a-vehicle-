@@ -125,7 +125,7 @@ app.get("/api/bookings", async (req, res) => {
 });
 
 app.post("/api/bookings", async (req, res) => {
-  const { userId, vehicleId, startDate, endDate, deliveryLocation } = req.body;
+  const { userId, vehicleId, startDate, endDate, deliveryState, deliveryDistrict, deliveryPincode } = req.body;
   const user = await get("SELECT * FROM users WHERE id = ?", [userId]);
   const vehicle = await get("SELECT * FROM vehicles WHERE id = ?", [vehicleId]);
   if (!user || !vehicle) return res.status(404).json({ message: "User or vehicle not found" });
@@ -136,8 +136,8 @@ app.post("/api/bookings", async (req, res) => {
   const total = days * vehicle.price;
 
   const result = await run(
-    "INSERT INTO bookings(user_id, user_name, vehicle_id, vehicle_name, start_date, end_date, delivery_location, total, status, payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'paid')",
-    [user.id, user.name, vehicle.id, vehicle.name, startDate, endDate, deliveryLocation || "", total]
+    "INSERT INTO bookings(user_id, user_name, vehicle_id, vehicle_name, start_date, end_date, delivery_state, delivery_district, delivery_pincode, total, status, payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'paid')",
+    [user.id, user.name, vehicle.id, vehicle.name, startDate, endDate, deliveryState || "", deliveryDistrict || "", deliveryPincode || "", total]
   );
 
   const booking = await get("SELECT * FROM bookings WHERE id = ?", [result.id]);
@@ -164,6 +164,6 @@ app.get("*", (_, res) => {
 
 initDb().then(() => {
   app.listen(PORT, () => {
-    console.log(`DriveRent backend running on http://localhost:${PORT}`);
+    console.log(`RentAVehicle backend running on http://localhost:${PORT}`);
   });
 });

@@ -1,4 +1,4 @@
-# DriveRent Backend
+# RentAVehicle Backend
 
 Express + SQLite backend that powers authentication, vehicles, bookings, user verification, and admin overview.
 
