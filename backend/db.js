@@ -65,12 +65,19 @@ async function initDb() {
     vehicle_name TEXT NOT NULL,
     start_date TEXT NOT NULL,
     end_date TEXT NOT NULL,
+    delivery_location TEXT,
     total INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     payment TEXT NOT NULL DEFAULT 'unpaid',
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(vehicle_id) REFERENCES vehicles(id)
   )`);
+
+  try {
+    await run("ALTER TABLE bookings ADD COLUMN delivery_location TEXT");
+  } catch (error) {
+    // Column already exists in existing databases.
+  }
 
   const admin = await get("SELECT id FROM users WHERE email = ?", ["admin@vehicle.com"]);
   if (!admin) {

@@ -225,6 +225,7 @@ function bookingPage() {
     e.preventDefault();
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
+    const deliveryLocation = document.getElementById("deliveryLocation").value.trim();
     const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000));
     const total = days * vehicle.price;
 
@@ -236,6 +237,7 @@ function bookingPage() {
       vehicleName: vehicle.name,
       startDate,
       endDate,
+      deliveryLocation,
       total,
       status: "pending",
       payment: "unpaid",
@@ -254,7 +256,7 @@ function paymentPage() {
 
   const draft = JSON.parse(localStorage.getItem("vr_draft_booking") || "null");
   if (!draft) return (location.href = "vehicles.html");
-  document.getElementById("paymentSummary").textContent = `${draft.vehicleName}: ${formatCurrency(draft.total)}`;
+  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery Location: ${draft.deliveryLocation || "N/A"}</span>`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -323,11 +325,12 @@ function renderMyBookings() {
     <tr>
       <td>${b.vehicleName}</td>
       <td>${b.startDate} → ${b.endDate}</td>
+      <td>${b.deliveryLocation || "N/A"}</td>
       <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>${b.payment}</td>
     </tr>
-  `).join("") || "<tr><td colspan='5'>No bookings yet.</td></tr>";
+  `).join("") || "<tr><td colspan='6'>No bookings yet.</td></tr>";
 }
 
 function profilePage() {
@@ -387,6 +390,7 @@ function adminPage() {
     <tr>
       <td>${b.userName}</td>
       <td>${b.vehicleName}</td>
+      <td>${b.deliveryLocation || "N/A"}</td>
       <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>
