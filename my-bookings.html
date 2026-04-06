@@ -5,12 +5,14 @@
   <div class="card" style="margin-bottom:16px;">
     <h3>User Verification</h3>
     <p id="verificationStatus" class="small"></p>
-    <form id="verificationForm">
-      <label>Upload Driving License Photo</label>
-      <input id="licenseFile" type="file" accept="image/*" required>
-      <button class="btn btn-primary" type="submit">Verify Account</button>
-    </form>
-    <div id="verificationBanner" class="banner">Verification successful. You can now rent vehicles.</div>
+    <div id="verificationUploadBlock">
+      <form id="verificationForm">
+        <label>Upload Driving License Photo</label>
+        <input id="licenseFile" type="file" accept="image/*" required>
+        <button class="btn btn-primary" type="submit">Verify Account</button>
+      </form>
+      <div id="verificationBanner" class="banner">Verification successful. You can now rent vehicles.</div>
+    </div>
     <div id="licensePreview"></div>
   </div>
   <div class="card table-wrap"><table><thead><tr><th>Vehicle</th><th>Dates</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead><tbody id="myBookingsBody"></tbody></table></div>

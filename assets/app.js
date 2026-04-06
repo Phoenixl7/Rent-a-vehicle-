@@ -267,12 +267,17 @@ function paymentPage() {
 function renderVerification(user) {
   const status = document.getElementById("verificationStatus");
   const preview = document.getElementById("licensePreview");
+  const uploadWrap = document.getElementById("verificationUploadBlock");
   const uploadForm = document.getElementById("verificationForm");
-  if (!status || !preview || !uploadForm) return;
+  if (!status || !preview || !uploadForm || !uploadWrap) return;
 
-  status.innerHTML = user.verified
-    ? `<span class="status approved">Verified</span> You can rent vehicles now.`
-    : `<span class="status cancelled">Not Verified</span> Upload your driving license to verify.`;
+  if (user.verified) {
+    status.innerHTML = `<span class="status approved">Verified</span> Your account is already verified.`;
+    uploadWrap.style.display = "none";
+  } else {
+    status.innerHTML = `<span class="status cancelled">Not Verified</span> Upload your driving license to verify.`;
+    uploadWrap.style.display = "block";
+  }
 
   preview.innerHTML = user.licensePhoto
     ? `<img src="${user.licensePhoto}" alt="Driving License" style="max-width:300px;border-radius:12px;border:1px solid var(--border);"/>`
@@ -292,7 +297,8 @@ function renderVerification(user) {
 
       if (updated) {
         document.getElementById("verificationBanner").style.display = "block";
-        status.innerHTML = `<span class="status approved">Verified</span> You can rent vehicles now.`;
+        status.innerHTML = `<span class="status approved">Verified</span> Your account is already verified.`;
+        uploadWrap.style.display = "none";
         preview.innerHTML = `<img src="${updated.licensePhoto}" alt="Driving License" style="max-width:300px;border-radius:12px;border:1px solid var(--border);"/>`;
       }
     };
