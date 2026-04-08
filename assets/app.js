@@ -483,6 +483,10 @@ function adminPage() {
         ? '<span class="status pending">Pending</span>'
         : '<span class="status cancelled">Unverified</span>';
 
+    const licenseCell = u.licensePhoto
+      ? `<button class="btn" onclick="viewLicense('${u.id}')">View License</button>`
+      : 'Not Uploaded';
+
     const action = u.verificationStatus === "pending"
       ? `<button class="btn btn-primary" onclick="setUserVerification('${u.id}', 'verified')">Approve</button> <button class="btn btn-danger" onclick="setUserVerification('${u.id}', 'unverified')">Reject</button>`
       : "-";
@@ -493,7 +497,7 @@ function adminPage() {
         <td>${u.email}</td>
         <td>${u.role}</td>
         <td>${statusBadge}</td>
-        <td>${u.licensePhoto ? 'Uploaded' : 'Not Uploaded'}</td>
+        <td>${licenseCell}</td>
         <td>${action}</td>
       </tr>
     `;
@@ -536,6 +540,18 @@ function adminPage() {
   });
 }
 
+
+
+function viewLicense(userId) {
+  const users = getData(storageKeys.users);
+  const user = users.find((u) => u.id === userId);
+  if (!user || !user.licensePhoto) return alert("No license uploaded for this user.");
+
+  const win = window.open("", "_blank");
+  if (!win) return alert("Popup blocked. Please allow popups to view license.");
+  win.document.write(`<title>Driving License - ${user.name}</title><div style="font-family:sans-serif;padding:16px;"><h3>${user.name} - Driving License</h3><img src="${user.licensePhoto}" alt="Driving License" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;"/></div>`);
+  win.document.close();
+}
 
 function setUserVerification(userId, status) {
   const users = getData(storageKeys.users);
@@ -600,3 +616,4 @@ window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
 window.setUserVerification = setUserVerification;
+window.viewLicense = viewLicense;
