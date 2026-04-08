@@ -46,8 +46,8 @@ function initData() {
   const users = getData(storageKeys.users, []);
   if (!users.length) {
     setData(storageKeys.users, [
-      { id: "u1", name: "Admin", email: "admin@vehicle.com", password: "admin123", role: "admin", phone: "+91 10022 23344", verified: true, licensePhoto: null },
-      { id: "u2", name: "John Rider", email: "user@vehicle.com", password: "user123", role: "user", phone: "+91 33344 45555", verified: false, licensePhoto: null },
+      { id: "u1", name: "Admin", email: "admin@vehicle.com", password: "admin123", role: "admin", phone: "+91 10022 23344", verified: true, verificationStatus: "verified", licensePhoto: null },
+      { id: "u2", name: "John Rider", email: "user@vehicle.com", password: "user123", role: "user", phone: "+91 33344 45555", verified: false, verificationStatus: "unverified", licensePhoto: null },
     ]);
   }
 
@@ -103,7 +103,7 @@ function bindAuthForms() {
       const password = document.getElementById("signupPassword").value;
       const users = getData(storageKeys.users);
       if (users.some((u) => u.email === email)) return alert("Email already exists");
-      const newUser = { id: `u${Date.now()}`, name, email, phone, password, role: "user", verified: false, licensePhoto: null };
+      const newUser = { id: `u${Date.now()}`, name, email, phone, password, role: "user", verified: false, verificationStatus: "unverified", licensePhoto: null };
       users.push(newUser);
       setData(storageKeys.users, users);
       setData(storageKeys.session, newUser);
@@ -294,17 +294,22 @@ function renderVerification(user) {
   const uploadForm = document.getElementById("verificationForm");
   if (!status || !preview || !uploadForm || !uploadWrap) return;
 
-  if (user.verified) {
-    status.innerHTML = `<span class="status approved">Verified</span> Your account is already verified.`;
+  if (user.verificationStatus === "verified") {
+    status.innerHTML = `<span class="status approved">Verified</span> Your account is approved by admin.`;
+    uploadWrap.style.display = "none";
+  } else if (user.verificationStatus === "pending") {
+    status.innerHTML = `<span class="status pending">Pending</span> Waiting for admin approval.`;
     uploadWrap.style.display = "none";
   } else {
-    status.innerHTML = `<span class="status cancelled">Not Verified</span> Upload your driving license to verify.`;
+    status.innerHTML = `<span class="status cancelled">Not Verified</span> Upload your driving license for admin approval.`;
     uploadWrap.style.display = "block";
   }
 
-  preview.innerHTML = user.verified
-    ? `<p class="small">Driving license is verified and hidden for privacy.</p>`
-    : `<p class="small">No license photo uploaded yet.</p>`;
+  preview.innerHTML = user.verificationStatus === "verified"
+    ? `<p class="small">Driving license is approved and hidden for privacy.</p>`
+    : user.verificationStatus === "pending"
+      ? `<p class="small">Driving license uploaded. Waiting for admin approval.</p>`
+      : `<p class="small">No license photo uploaded yet.</p>`;
 
   uploadForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -315,14 +320,15 @@ function renderVerification(user) {
     reader.onload = () => {
       const updated = updateUserRecord(user.id, {
         licensePhoto: reader.result,
-        verified: true,
+        verified: false,
+        verificationStatus: "pending",
       });
 
       if (updated) {
         document.getElementById("verificationBanner").style.display = "block";
-        status.innerHTML = `<span class="status approved">Verified</span> Your account is already verified.`;
+        status.innerHTML = `<span class="status pending">Pending</span> Waiting for admin approval.`;
         uploadWrap.style.display = "none";
-        preview.innerHTML = `<p class="small">Driving license is verified and hidden for privacy.</p>`;
+        preview.innerHTML = `<p class="small">Driving license uploaded. Waiting for admin approval.</p>`;
       }
     };
     reader.readAsDataURL(file);
@@ -415,9 +421,9 @@ function profilePage() {
 
   const tag = document.getElementById("profileVerification");
   if (tag) {
-    tag.innerHTML = user.verified
-      ? `<span class="status approved">Verified</span>`
-      : `<span class="status cancelled">Not Verified</span>`;
+    if (user.verificationStatus === "verified") tag.innerHTML = `<span class="status approved">Verified</span>`;
+    else if (user.verificationStatus === "pending") tag.innerHTML = `<span class="status pending">Pending Approval</span>`;
+    else tag.innerHTML = `<span class="status cancelled">Not Verified</span>`;
   }
 
   form.addEventListener("submit", (e) => {
@@ -470,14 +476,28 @@ function adminPage() {
     </tr>
   `).join("");
 
-  document.getElementById("userAdminRows").innerHTML = users.map((u) => `
-    <tr>
-      <td>${u.name}</td>
-      <td>${u.email}</td>
-      <td>${u.role}</td>
-      <td>${u.verified ? '<span class="status approved">Verified</span>' : '<span class="status pending">Unverified</span>'}</td>
-    </tr>
-  `).join("");
+  document.getElementById("userAdminRows").innerHTML = users.map((u) => {
+    const statusBadge = u.verificationStatus === "verified"
+      ? '<span class="status approved">Verified</span>'
+      : u.verificationStatus === "pending"
+        ? '<span class="status pending">Pending</span>'
+        : '<span class="status cancelled">Unverified</span>';
+
+    const action = u.verificationStatus === "pending"
+      ? `<button class="btn btn-primary" onclick="setUserVerification('${u.id}', 'verified')">Approve</button> <button class="btn btn-danger" onclick="setUserVerification('${u.id}', 'unverified')">Reject</button>`
+      : "-";
+
+    return `
+      <tr>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td>${u.role}</td>
+        <td>${statusBadge}</td>
+        <td>${u.licensePhoto ? 'Uploaded' : 'Not Uploaded'}</td>
+        <td>${action}</td>
+      </tr>
+    `;
+  }).join("");
 
   const vehicleForm = document.getElementById("vehicleForm");
   vehicleForm.addEventListener("submit", (e) => {
@@ -514,6 +534,23 @@ function adminPage() {
       saveVehicle(existingImage);
     }
   });
+}
+
+
+function setUserVerification(userId, status) {
+  const users = getData(storageKeys.users);
+  const idx = users.findIndex((u) => u.id === userId);
+  if (idx < 0) return;
+
+  users[idx].verificationStatus = status;
+  users[idx].verified = status === "verified";
+  setData(storageKeys.users, users);
+
+  const session = getSessionUser();
+  if (session && session.id === userId) {
+    setData(storageKeys.session, users[idx]);
+  }
+  location.reload();
 }
 
 function editVehicle(id) {
@@ -562,3 +599,4 @@ window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
+window.setUserVerification = setUserVerification;
