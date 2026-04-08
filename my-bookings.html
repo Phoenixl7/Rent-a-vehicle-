@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>My Bookings</title><link rel="stylesheet" href="assets/styles.css"></head><body>
+<header class="navbar"><div class="container nav-content"><a class="logo" href="index.html">RentAVehicle</a><div id="sessionArea"></div></div></header>
+<main class="container section">
+  <h2>My Bookings (User Dashboard)</h2>
+  <div class="card" style="margin-bottom:16px;">
+    <h3>User Verification</h3>
+    <p id="verificationStatus" class="small"></p>
+    <div id="verificationUploadBlock">
+      <form id="verificationForm">
+        <label>Upload Driving License Photo</label>
+        <input id="licenseFile" type="file" accept="image/*" required>
+        <button class="btn btn-primary" type="submit">Verify Account</button>
+      </form>
+      <div id="verificationBanner" class="banner">License uploaded successfully. Waiting for admin approval.</div>
+    </div>
+    <div id="licensePreview"></div>
+  </div>
+  <div class="card table-wrap"><table><thead><tr><th>Vehicle</th><th>Dates</th><th>Delivery Address</th><th>Total</th><th>Status</th><th>Payment</th><th>Refund</th><th>Action</th></tr></thead><tbody id="myBookingsBody"></tbody></table></div>
+</main>
+<script src="assets/app.js"></script></body></html>
