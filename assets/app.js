@@ -329,6 +329,47 @@ function renderVerification(user) {
   });
 }
 
+
+function getPickupDateTime(startDate) {
+  return new Date(`${startDate}T00:00:00`);
+}
+
+function getCancellationPolicy(booking) {
+  const pickup = getPickupDateTime(booking.startDate);
+  const now = new Date();
+  const hoursBeforePickup = (pickup - now) / (1000 * 60 * 60);
+
+  if (hoursBeforePickup <= 0) {
+    return { allowed: false, refund: 0, message: "After pickup time → cancellation not allowed" };
+  }
+  if (hoursBeforePickup > 48) {
+    return { allowed: true, refund: booking.total, message: "Full refund" };
+  }
+  if (hoursBeforePickup >= 24) {
+    return { allowed: true, refund: Math.round(booking.total * 0.5), message: "50% refund" };
+  }
+  return { allowed: true, refund: 0, message: "No refund" };
+}
+
+function cancelBooking(bookingId) {
+  const bookings = getData(storageKeys.bookings);
+  const i = bookings.findIndex((b) => b.id === bookingId);
+  if (i < 0) return;
+
+  const booking = bookings[i];
+  const policy = getCancellationPolicy(booking);
+  if (!policy.allowed) {
+    return alert("Cancellation is not allowed after pickup time.");
+  }
+
+  bookings[i].status = "cancelled";
+  bookings[i].refundAmount = policy.refund;
+  bookings[i].refundPolicy = policy.message;
+  setData(storageKeys.bookings, bookings);
+  alert(`Booking cancelled. Refund: ${formatCurrency(policy.refund)} (${policy.message})`);
+  renderMyBookings();
+}
+
 function renderMyBookings() {
   const table = document.getElementById("myBookingsBody");
   if (!table) return;
@@ -338,16 +379,28 @@ function renderMyBookings() {
   renderVerification(user);
 
   const rows = getData(storageKeys.bookings).filter((b) => b.userId === user.id);
-  table.innerHTML = rows.map((b) => `
-    <tr>
-      <td>${b.vehicleName}</td>
-      <td>${b.startDate} → ${b.endDate}</td>
-      <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
-      <td>${formatCurrency(b.total)}</td>
-      <td><span class="status ${b.status}">${b.status}</span></td>
-      <td>${b.payment}</td>
-    </tr>
-  `).join("") || "<tr><td colspan='6'>No bookings yet.</td></tr>";
+  table.innerHTML = rows.map((b) => {
+    const policy = getCancellationPolicy(b);
+    const canCancel = b.status !== "cancelled" && policy.allowed;
+    const refundText = b.status === "cancelled"
+      ? `${formatCurrency(b.refundAmount || 0)} (${b.refundPolicy || ""})`
+      : policy.allowed
+        ? `${formatCurrency(policy.refund)} (${policy.message})`
+        : "N/A";
+
+    return `
+      <tr>
+        <td>${b.vehicleName}</td>
+        <td>${b.startDate} → ${b.endDate}</td>
+        <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
+        <td>${formatCurrency(b.total)}</td>
+        <td><span class="status ${b.status}">${b.status}</span></td>
+        <td>${b.payment}</td>
+        <td>${refundText}</td>
+        <td>${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : "-"}</td>
+      </tr>
+    `;
+  }).join("") || "<tr><td colspan='8'>No bookings yet.</td></tr>";
 }
 
 function profilePage() {
@@ -508,3 +561,4 @@ window.logout = logout;
 window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
+window.cancelBooking = cancelBooking;
