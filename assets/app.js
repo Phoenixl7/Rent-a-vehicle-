@@ -28,6 +28,13 @@ function formatCurrency(amount) {
   }).format(Number(amount) || 0);
 }
 
+
+function getVehicleImages(vehicle) {
+  if (Array.isArray(vehicle.images) && vehicle.images.length) return vehicle.images;
+  if (vehicle.image) return [vehicle.image];
+  return ["https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80"];
+}
+
 function updateUserRecord(userId, patch) {
   const users = getData(storageKeys.users);
   const idx = users.findIndex((u) => u.id === userId);
@@ -170,7 +177,7 @@ function renderVehicles() {
     wrap.innerHTML = vehicles.length
       ? vehicles.map((v) => `
           <div class="card">
-            <img class="vehicle-thumb" src="${v.image}" alt="${v.name}"><h3>${v.name}</h3>
+            <img class="vehicle-thumb" src="${getVehicleImages(v)[0]}" alt="${v.name}"><h3>${v.name}</h3>
             <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p>
             <p>${formatCurrency(v.price)}/day</p>
             <a class="btn btn-primary" href="vehicle-details.html?id=${v.id}">View Details</a>
@@ -198,7 +205,7 @@ function renderVehicleDetails() {
 
   target.innerHTML = `
     <div class="card">
-      <img class="vehicle-hero" src="${v.image}" alt="${v.name}"><h2>${v.name}</h2>
+      ${getVehicleImages(v).map((img)=>`<img class="vehicle-hero" src="${img}" alt="${v.name}">`).join("")}<h2>${v.name}</h2>
       <p>${v.description}</p>
       <p><strong>Type:</strong> ${v.type}</p>
       <p><strong>Transmission:</strong> ${v.transmission}</p>
@@ -508,12 +515,16 @@ function adminPage() {
     e.preventDefault();
     const id = document.getElementById("vehicleId").value || `v${Date.now()}`;
     const existingImage = document.getElementById("vehicleImageExisting").value;
-    const imageFile = document.getElementById("vehicleImageFile").files[0];
+    const imageFile = document.getElementById("vehicleImageFile").files.length > 0;
 
-    const saveVehicle = (imageData) => {
+    const saveVehicle = (imageDataList) => {
+      const existingImages = existingImage ? JSON.parse(existingImage) : [];
+      const finalImages = (imageDataList && imageDataList.length ? imageDataList : existingImages);
+
       const payload = {
         id,
-        image: imageData || existingImage || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80",
+        image: finalImages[0] || "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1200&q=80",
+        images: finalImages,
         name: document.getElementById("vehicleName").value,
         type: document.getElementById("vehicleType").value,
         price: Number(document.getElementById("vehiclePrice").value),
@@ -531,11 +542,20 @@ function adminPage() {
     };
 
     if (imageFile) {
-      const reader = new FileReader();
-      reader.onload = () => saveVehicle(reader.result);
-      reader.readAsDataURL(imageFile);
+      const files = Array.from(document.getElementById("vehicleImageFile").files || []);
+      const images = [];
+      let processed = 0;
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          images.push(reader.result);
+          processed += 1;
+          if (processed === files.length) saveVehicle(images);
+        };
+        reader.readAsDataURL(file);
+      });
     } else {
-      saveVehicle(existingImage);
+      saveVehicle([]);
     }
   });
 }
@@ -573,8 +593,9 @@ function editVehicle(id) {
   const v = getVehicleById(id);
   if (!v) return;
   document.getElementById("vehicleId").value = v.id;
-  document.getElementById("vehicleImageExisting").value = v.image;
-  document.getElementById("vehicleImagePreview").innerHTML = `<img src="${v.image}" alt="${v.name}" class="vehicle-thumb" style="max-width:220px;height:120px;"/>`;
+  const existingImages = getVehicleImages(v);
+  document.getElementById("vehicleImageExisting").value = JSON.stringify(existingImages);
+  document.getElementById("vehicleImagePreview").innerHTML = existingImages.map((img)=>`<img src="${img}" alt="${v.name}" class="vehicle-thumb" style="max-width:220px;height:120px;margin-right:8px;"/>`).join("");
   document.getElementById("vehicleImageFile").value = "";
   document.getElementById("vehicleName").value = v.name;
   document.getElementById("vehicleType").value = v.type;
