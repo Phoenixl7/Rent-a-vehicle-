@@ -10,6 +10,9 @@ const defaultVehicles = [
   { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 10999, image: "assets/images/car-sedan.svg", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance.", stock: 5 },
   { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 6499, image: "assets/images/car-suv.svg", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys.", stock: 3 },
   { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 12999, image: "assets/images/car-luxury.svg", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling.", stock: 2 },
+
+  { id: "v5", name: "KTM Duke 390", type: "Bike", price: 1999, image: "assets/images/bike-sport.svg", seats: 2, fuel: "Petrol", transmission: "Manual", description: "Lightweight sport bike with sharp styling and thrilling performance.", stock: 6 },
+  { id: "v6", name: "Honda Activa 6G", type: "Scooter", price: 999, image: "assets/images/bike-scooter.svg", seats: 2, fuel: "Petrol", transmission: "CVT", description: "Reliable city scooter with smooth ride quality and excellent mileage.", stock: 8 },
 ];
 
 function getData(key, fallback = []) {

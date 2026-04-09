@@ -153,7 +153,9 @@ async function initDb() {
       ["Tesla Model Y", "SUV", 4, 8999, "assets/images/car-suv.svg", 5, "Electric", "Automatic", "Futuristic electric SUV with long range and autopilot-ready comfort."],
       ["BMW 5 Series", "Sedan", 5, 10999, "assets/images/car-sedan.svg", 5, "Hybrid", "Automatic", "Executive sedan blending luxury with dynamic performance."],
       ["Toyota Fortuner", "SUV", 3, 6499, "assets/images/car-suv.svg", 7, "Diesel", "Automatic", "Rugged family SUV ideal for city and off-road journeys."],
-      ["Mercedes C-Class", "Luxury", 2, 12999, "assets/images/car-luxury.svg", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."]
+      ["Mercedes C-Class", "Luxury", 2, 12999, "assets/images/car-luxury.svg", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."],
+      ["KTM Duke 390", "Bike", 6, 1999, "assets/images/bike-sport.svg", 2, "Petrol", "Manual", "Lightweight sport bike with sharp styling and thrilling performance."],
+      ["Honda Activa 6G", "Scooter", 8, 999, "assets/images/bike-scooter.svg", 2, "Petrol", "CVT", "Reliable city scooter with smooth ride quality and excellent mileage."]
     ];
 
     for (const v of seedVehicles) {
