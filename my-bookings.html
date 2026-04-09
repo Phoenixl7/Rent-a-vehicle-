@@ -9,9 +9,13 @@
       <form id="verificationForm">
         <label>Upload Driving License Photo</label>
         <input id="licenseFile" type="file" accept="image/*" required>
+        <label>Upload Passport or Aadhaar Card</label>
+        <input id="idProofFile" type="file" accept="image/*,application/pdf" required>
+        <label>Upload Your Photo</label>
+        <input id="userPhotoFile" type="file" accept="image/*" required>
         <button class="btn btn-primary" type="submit">Verify Account</button>
       </form>
-      <div id="verificationBanner" class="banner">License uploaded successfully. Waiting for admin approval.</div>
+      <div id="verificationBanner" class="banner">Documents uploaded successfully. Waiting for admin approval.</div>
     </div>
     <div id="licensePreview"></div>
   </div>

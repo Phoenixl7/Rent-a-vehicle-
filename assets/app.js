@@ -53,8 +53,8 @@ function initData() {
   const users = getData(storageKeys.users, []);
   if (!users.length) {
     setData(storageKeys.users, [
-      { id: "u1", name: "Admin", email: "admin@vehicle.com", password: "admin123", role: "admin", phone: "+91 10022 23344", verified: true, verificationStatus: "verified", licensePhoto: null },
-      { id: "u2", name: "John Rider", email: "user@vehicle.com", password: "user123", role: "user", phone: "+91 33344 45555", verified: false, verificationStatus: "unverified", licensePhoto: null },
+      { id: "u1", name: "Admin", email: "admin@vehicle.com", password: "admin123", role: "admin", phone: "+91 10022 23344", verified: true, verificationStatus: "verified", licensePhoto: null, idProof: null, userPhoto: null },
+      { id: "u2", name: "John Rider", email: "user@vehicle.com", password: "user123", role: "user", phone: "+91 33344 45555", verified: false, verificationStatus: "unverified", licensePhoto: null, idProof: null, userPhoto: null },
     ]);
   }
 
@@ -110,7 +110,7 @@ function bindAuthForms() {
       const password = document.getElementById("signupPassword").value;
       const users = getData(storageKeys.users);
       if (users.some((u) => u.email === email)) return alert("Email already exists");
-      const newUser = { id: `u${Date.now()}`, name, email, phone, password, role: "user", verified: false, verificationStatus: "unverified", licensePhoto: null };
+      const newUser = { id: `u${Date.now()}`, name, email, phone, password, role: "user", verified: false, verificationStatus: "unverified", licensePhoto: null, idProof: null, userPhoto: null };
       users.push(newUser);
       setData(storageKeys.users, users);
       setData(storageKeys.session, newUser);
@@ -317,18 +317,30 @@ function renderVerification(user) {
   preview.innerHTML = user.verificationStatus === "verified"
     ? `<p class="small">Driving license is approved and hidden for privacy.</p>`
     : user.verificationStatus === "pending"
-      ? `<p class="small">Driving license uploaded. Waiting for admin approval.</p>`
+      ? `<p class="small">Verification documents uploaded. Waiting for admin approval.</p>`
       : `<p class="small">No license photo uploaded yet.</p>`;
 
   uploadForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const file = document.getElementById("licenseFile").files[0];
-    if (!file) return alert("Please choose a driving license photo.");
+    const licenseFile = document.getElementById("licenseFile").files[0];
+    const idProofFile = document.getElementById("idProofFile").files[0];
+    const userPhotoFile = document.getElementById("userPhotoFile").files[0];
 
-    const reader = new FileReader();
-    reader.onload = () => {
+    if (!licenseFile || !idProofFile || !userPhotoFile) {
+      return alert("Please upload driving license, passport/aadhaar, and your photo.");
+    }
+
+    const readFile = (file) => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+
+    Promise.all([readFile(licenseFile), readFile(idProofFile), readFile(userPhotoFile)]).then(([licenseData, idProofData, userPhotoData]) => {
       const updated = updateUserRecord(user.id, {
-        licensePhoto: reader.result,
+        licensePhoto: licenseData,
+        idProof: idProofData,
+        userPhoto: userPhotoData,
         verified: false,
         verificationStatus: "pending",
       });
@@ -337,10 +349,9 @@ function renderVerification(user) {
         document.getElementById("verificationBanner").style.display = "block";
         status.innerHTML = `<span class="status pending">Pending</span> Waiting for admin approval.`;
         uploadWrap.style.display = "none";
-        preview.innerHTML = `<p class="small">Driving license uploaded. Waiting for admin approval.</p>`;
+        preview.innerHTML = `<p class="small">Verification documents uploaded. Waiting for admin approval.</p>`;
       }
-    };
-    reader.readAsDataURL(file);
+    });
   });
 }
 
@@ -493,8 +504,8 @@ function adminPage() {
         ? '<span class="status pending">Pending</span>'
         : '<span class="status cancelled">Unverified</span>';
 
-    const licenseCell = u.licensePhoto
-      ? `<button class="btn" onclick="viewLicense('${u.id}')">View License</button>`
+    const licenseCell = u.licensePhoto && u.idProof && u.userPhoto
+      ? `<button class="btn" onclick="viewLicense('${u.id}')">License</button> <button class="btn" onclick="viewIdProof('${u.id}')">Passport/Aadhaar</button> <button class="btn" onclick="viewUserPhoto('${u.id}')">User Photo</button>`
       : 'Not Uploaded';
 
     const action = u.verificationStatus === "pending"
@@ -576,6 +587,29 @@ function viewLicense(userId) {
   win.document.close();
 }
 
+
+function viewIdProof(userId) {
+  const users = getData(storageKeys.users);
+  const user = users.find((u) => u.id === userId);
+  if (!user || !user.idProof) return alert("No passport/aadhaar uploaded for this user.");
+
+  const win = window.open("", "_blank");
+  if (!win) return alert("Popup blocked. Please allow popups to view document.");
+  win.document.write(`<title>ID Proof - ${user.name}</title><div style="font-family:sans-serif;padding:16px;"><h3>${user.name} - Passport/Aadhaar</h3><iframe src="${user.idProof}" style="width:100%;height:90vh;border:1px solid #ddd;"></iframe></div>`);
+  win.document.close();
+}
+
+function viewUserPhoto(userId) {
+  const users = getData(storageKeys.users);
+  const user = users.find((u) => u.id === userId);
+  if (!user || !user.userPhoto) return alert("No user photo uploaded for this user.");
+
+  const win = window.open("", "_blank");
+  if (!win) return alert("Popup blocked. Please allow popups to view user photo.");
+  win.document.write(`<title>User Photo - ${user.name}</title><div style="font-family:sans-serif;padding:16px;"><h3>${user.name} - User Photo</h3><img src="${user.userPhoto}" alt="User Photo" style="max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;"/></div>`);
+  win.document.close();
+}
+
 function setUserVerification(userId, status) {
   const users = getData(storageKeys.users);
   const idx = users.findIndex((u) => u.id === userId);
@@ -641,3 +675,5 @@ window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
 window.setUserVerification = setUserVerification;
 window.viewLicense = viewLicense;
+window.viewIdProof = viewIdProof;
+window.viewUserPhoto = viewUserPhoto;
