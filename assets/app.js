@@ -6,10 +6,10 @@ const storageKeys = {
 };
 
 const defaultVehicles = [
-  { id: "v1", name: "Tesla Model Y", type: "SUV", price: 8999, image: "assets/images/car-suv.svg", seats: 5, fuel: "Electric", transmission: "Automatic", description: "Futuristic electric SUV with long range and autopilot-ready comfort." },
-  { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 10999, image: "assets/images/car-sedan.svg", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance." },
-  { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 6499, image: "assets/images/car-suv.svg", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys." },
-  { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 12999, image: "assets/images/car-luxury.svg", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling." },
+  { id: "v1", name: "Tesla Model Y", type: "SUV", price: 8999, image: "assets/images/car-suv.svg", seats: 5, fuel: "Electric", transmission: "Automatic", description: "Futuristic electric SUV with long range and autopilot-ready comfort.", stock: 4 },
+  { id: "v2", name: "BMW 5 Series", type: "Sedan", price: 10999, image: "assets/images/car-sedan.svg", seats: 5, fuel: "Hybrid", transmission: "Automatic", description: "Executive sedan blending luxury with dynamic performance.", stock: 5 },
+  { id: "v3", name: "Toyota Fortuner", type: "SUV", price: 6499, image: "assets/images/car-suv.svg", seats: 7, fuel: "Diesel", transmission: "Automatic", description: "Rugged family SUV ideal for city and off-road journeys.", stock: 3 },
+  { id: "v4", name: "Mercedes C-Class", type: "Luxury", price: 12999, image: "assets/images/car-luxury.svg", seats: 5, fuel: "Petrol", transmission: "Automatic", description: "Elegant luxury ride with premium cabin and smooth handling.", stock: 2 },
 ];
 
 function getData(key, fallback = []) {
@@ -178,7 +178,7 @@ function renderVehicles() {
       ? vehicles.map((v) => `
           <div class="card">
             <img class="vehicle-thumb" src="${getVehicleImages(v)[0]}" alt="${v.name}" onerror="this.src='assets/images/car-default.svg'"><h3>${v.name}</h3>
-            <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p>
+            <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p><p class="small">Stock: ${v.stock ?? 0}</p>
             <p>${formatCurrency(v.price)}/day</p>
             <a class="btn btn-primary" href="vehicle-details.html?id=${v.id}">View Details</a>
           </div>
@@ -210,7 +210,7 @@ function renderVehicleDetails() {
       <p><strong>Type:</strong> ${v.type}</p>
       <p><strong>Transmission:</strong> ${v.transmission}</p>
       <p><strong>Seats:</strong> ${v.seats}</p>
-      <p><strong>Fuel:</strong> ${v.fuel}</p>
+      <p><strong>Fuel:</strong> ${v.fuel}</p><p><strong>Stock:</strong> ${v.stock ?? 0}</p>
       <h3>${formatCurrency(v.price)}/day</h3>
       <a href="booking.html" class="btn btn-primary">Book Now</a>
     </div>
@@ -231,7 +231,12 @@ function bookingPage() {
 
   const selectedId = localStorage.getItem("vr_selected_vehicle") || getData(storageKeys.vehicles)[0].id;
   const vehicle = getVehicleById(selectedId);
-  document.getElementById("bookingVehicle").textContent = `${vehicle.name} (${formatCurrency(vehicle.price)}/day)`;
+  if ((vehicle.stock ?? 0) <= 0) {
+    alert("This vehicle is out of stock right now.");
+    location.href = "vehicles.html";
+    return;
+  }
+  document.getElementById("bookingVehicle").textContent = `${vehicle.name} (${formatCurrency(vehicle.price)}/day) - Stock: ${vehicle.stock ?? 0}`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -290,6 +295,13 @@ function paymentPage() {
     draft.payment = "paid";
     bookings.push(draft);
     setData(storageKeys.bookings, bookings);
+
+    const vehicles = getData(storageKeys.vehicles);
+    const vIdx = vehicles.findIndex((v) => v.id === draft.vehicleId);
+    if (vIdx >= 0) {
+      vehicles[vIdx].stock = Math.max(0, (vehicles[vIdx].stock ?? 0) - 1);
+      setData(storageKeys.vehicles, vehicles);
+    }
     localStorage.removeItem("vr_draft_booking");
     document.getElementById("paymentBanner").style.display = "block";
     setTimeout(() => (location.href = "my-bookings.html"), 900);
@@ -392,6 +404,14 @@ function cancelBooking(bookingId) {
   bookings[i].status = "cancelled";
   bookings[i].refundAmount = policy.refund;
   bookings[i].refundPolicy = policy.message;
+
+  const vehicles = getData(storageKeys.vehicles);
+  const vIdx = vehicles.findIndex((v) => v.id === booking.vehicleId);
+  if (vIdx >= 0) {
+    vehicles[vIdx].stock = (vehicles[vIdx].stock ?? 0) + 1;
+    setData(storageKeys.vehicles, vehicles);
+  }
+
   setData(storageKeys.bookings, bookings);
   alert(`Booking cancelled. Refund: ${formatCurrency(policy.refund)} (${policy.message})`);
   renderMyBookings();
@@ -475,6 +495,7 @@ function adminPage() {
     <tr>
       <td>${v.name}</td>
       <td>${v.type}</td>
+      <td>${v.stock ?? 0}</td>
       <td>${formatCurrency(v.price)}</td>
       <td>
         <button class="btn" onclick="editVehicle('${v.id}')">Edit</button>
@@ -541,6 +562,7 @@ function adminPage() {
         images: finalImages,
         name: document.getElementById("vehicleName").value,
         type: document.getElementById("vehicleType").value,
+        stock: Number(document.getElementById("vehicleStock").value),
         price: Number(document.getElementById("vehiclePrice").value),
         seats: Number(document.getElementById("vehicleSeats").value),
         fuel: document.getElementById("vehicleFuel").value,
@@ -636,6 +658,7 @@ function editVehicle(id) {
   document.getElementById("vehicleImageFile").value = "";
   document.getElementById("vehicleName").value = v.name;
   document.getElementById("vehicleType").value = v.type;
+  document.getElementById("vehicleStock").value = v.stock ?? 0;
   document.getElementById("vehiclePrice").value = v.price;
   document.getElementById("vehicleSeats").value = v.seats;
   document.getElementById("vehicleFuel").value = v.fuel;

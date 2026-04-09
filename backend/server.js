@@ -73,20 +73,20 @@ app.get("/api/vehicles/:id", async (req, res) => {
 });
 
 app.post("/api/vehicles", async (req, res) => {
-  const { name, type, price, image, seats, fuel, transmission, description } = req.body;
+  const { name, type, stock, price, image, seats, fuel, transmission, description } = req.body;
   const result = await run(
-    "INSERT INTO vehicles(name, type, price, image, seats, fuel, transmission, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    [name, type, price, image || "assets/images/car-default.svg", seats || 5, fuel || "Petrol", transmission || "Automatic", description || ""]
+    "INSERT INTO vehicles(name, type, stock, price, image, seats, fuel, transmission, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [name, type, Number(stock || 0), price, image || "assets/images/car-default.svg", seats || 5, fuel || "Petrol", transmission || "Automatic", description || ""]
   );
   const row = await get("SELECT * FROM vehicles WHERE id = ?", [result.id]);
   res.status(201).json(row);
 });
 
 app.put("/api/vehicles/:id", async (req, res) => {
-  const { name, type, price, image, seats, fuel, transmission, description } = req.body;
+  const { name, type, stock, price, image, seats, fuel, transmission, description } = req.body;
   await run(
-    "UPDATE vehicles SET name=?, type=?, price=?, image=?, seats=?, fuel=?, transmission=?, description=? WHERE id=?",
-    [name, type, price, image, seats, fuel, transmission, description, req.params.id]
+    "UPDATE vehicles SET name=?, type=?, stock=?, price=?, image=?, seats=?, fuel=?, transmission=?, description=? WHERE id=?",
+    [name, type, Number(stock || 0), price, image, seats, fuel, transmission, description, req.params.id]
   );
   const row = await get("SELECT * FROM vehicles WHERE id = ?", [req.params.id]);
   res.json(row);

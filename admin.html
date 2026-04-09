@@ -16,6 +16,7 @@
         <label>Vehicle Image</label><input id="vehicleImageFile" type="file" accept="image/*" multiple><input type="hidden" id="vehicleImageExisting"><div id="vehicleImagePreview" class="small"></div>
         <label>Name</label><input id="vehicleName" required>
         <label>Type</label><input id="vehicleType" required>
+        <label>Stock</label><input id="vehicleStock" type="number" min="0" required>
         <label>Price / Day</label><input id="vehiclePrice" type="number" required>
         <label>Seats</label><input id="vehicleSeats" type="number" required>
         <label>Fuel</label><input id="vehicleFuel" required>
@@ -23,7 +24,7 @@
         <label>Description</label><textarea id="vehicleDescription" required></textarea>
         <button class="btn btn-primary" type="submit">Save Vehicle</button>
       </form></div>
-      <div class="card table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Price</th><th>Actions</th></tr></thead><tbody id="vehicleAdminRows"></tbody></table></div>
+      <div class="card table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Stock</th><th>Price</th><th>Actions</th></tr></thead><tbody id="vehicleAdminRows"></tbody></table></div>
     </div>
   </section>
 

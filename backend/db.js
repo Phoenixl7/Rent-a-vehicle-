@@ -89,6 +89,7 @@ async function initDb() {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
     price INTEGER NOT NULL,
     image TEXT,
     seats INTEGER,
@@ -96,6 +97,8 @@ async function initDb() {
     transmission TEXT,
     description TEXT
   )`);
+
+  try { await run("ALTER TABLE vehicles ADD COLUMN stock INTEGER NOT NULL DEFAULT 0"); } catch (error) {}
 
   await run(`CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,15 +150,15 @@ async function initDb() {
   const vehicleCount = await get("SELECT COUNT(*) as count FROM vehicles");
   if (!vehicleCount || Number(vehicleCount.count) === 0) {
     const seedVehicles = [
-      ["Tesla Model Y", "SUV", 8999, "assets/images/car-suv.svg", 5, "Electric", "Automatic", "Futuristic electric SUV with long range and autopilot-ready comfort."],
-      ["BMW 5 Series", "Sedan", 10999, "assets/images/car-sedan.svg", 5, "Hybrid", "Automatic", "Executive sedan blending luxury with dynamic performance."],
-      ["Toyota Fortuner", "SUV", 6499, "assets/images/car-suv.svg", 7, "Diesel", "Automatic", "Rugged family SUV ideal for city and off-road journeys."],
-      ["Mercedes C-Class", "Luxury", 12999, "assets/images/car-luxury.svg", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."]
+      ["Tesla Model Y", "SUV", 4, 8999, "assets/images/car-suv.svg", 5, "Electric", "Automatic", "Futuristic electric SUV with long range and autopilot-ready comfort."],
+      ["BMW 5 Series", "Sedan", 5, 10999, "assets/images/car-sedan.svg", 5, "Hybrid", "Automatic", "Executive sedan blending luxury with dynamic performance."],
+      ["Toyota Fortuner", "SUV", 3, 6499, "assets/images/car-suv.svg", 7, "Diesel", "Automatic", "Rugged family SUV ideal for city and off-road journeys."],
+      ["Mercedes C-Class", "Luxury", 2, 12999, "assets/images/car-luxury.svg", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."]
     ];
 
     for (const v of seedVehicles) {
       await run(
-        "INSERT INTO vehicles(name, type, price, image, seats, fuel, transmission, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO vehicles(name, type, stock, price, image, seats, fuel, transmission, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         v
       );
     }
