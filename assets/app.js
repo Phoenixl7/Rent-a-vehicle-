@@ -237,6 +237,7 @@ function bookingPage() {
     e.preventDefault();
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
+    const deliveryTime = document.getElementById("deliveryTime").value;
     const addressLine1 = document.getElementById("addressLine1").value.trim();
     const addressLine2 = document.getElementById("addressLine2").value.trim();
     const deliveryCity = document.getElementById("deliveryCity").value.trim();
@@ -257,6 +258,7 @@ function bookingPage() {
       vehicleName: vehicle.name,
       startDate,
       endDate,
+      deliveryTime,
       addressLine1,
       addressLine2,
       deliveryCity,
@@ -280,7 +282,7 @@ function paymentPage() {
 
   const draft = JSON.parse(localStorage.getItem("vr_draft_booking") || "null");
   if (!draft) return (location.href = "vehicles.html");
-  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery: ${draft.addressLine1 || ""}, ${draft.addressLine2 || ""}, ${draft.deliveryCity || ""}, ${draft.deliveryState || ""} - ${draft.deliveryPincode || "N/A"}</span>`;
+  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery: ${draft.addressLine1 || ""}, ${draft.addressLine2 || ""}, ${draft.deliveryCity || ""}, ${draft.deliveryState || ""} - ${draft.deliveryPincode || "N/A"}<br><span class="small">Delivery Time: ${draft.deliveryTime || "N/A"}</span></span>`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -343,12 +345,13 @@ function renderVerification(user) {
 }
 
 
-function getPickupDateTime(startDate) {
-  return new Date(`${startDate}T00:00:00`);
+function getPickupDateTime(startDate, deliveryTime) {
+  const time = deliveryTime || "00:00";
+  return new Date(`${startDate}T${time}:00`);
 }
 
 function getCancellationPolicy(booking) {
-  const pickup = getPickupDateTime(booking.startDate);
+  const pickup = getPickupDateTime(booking.startDate, booking.deliveryTime);
   const now = new Date();
   const hoursBeforePickup = (pickup - now) / (1000 * 60 * 60);
 
@@ -404,7 +407,7 @@ function renderMyBookings() {
     return `
       <tr>
         <td>${b.vehicleName}</td>
-        <td>${b.startDate} → ${b.endDate}</td>
+        <td>${b.startDate} ${b.deliveryTime ? `(${b.deliveryTime})` : ""} → ${b.endDate}</td>
         <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
         <td>${formatCurrency(b.total)}</td>
         <td><span class="status ${b.status}">${b.status}</span></td>

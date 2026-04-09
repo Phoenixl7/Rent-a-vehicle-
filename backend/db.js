@@ -105,6 +105,7 @@ async function initDb() {
     vehicle_name TEXT NOT NULL,
     start_date TEXT NOT NULL,
     end_date TEXT NOT NULL,
+    delivery_time TEXT,
     address_line1 TEXT,
     address_line2 TEXT,
     delivery_city TEXT,
@@ -117,6 +118,7 @@ async function initDb() {
     FOREIGN KEY(vehicle_id) REFERENCES vehicles(id)
   )`);
 
+  try { await run("ALTER TABLE bookings ADD COLUMN delivery_time TEXT"); } catch (error) {}
   try { await run("ALTER TABLE bookings ADD COLUMN address_line1 TEXT"); } catch (error) {}
   try { await run("ALTER TABLE bookings ADD COLUMN address_line2 TEXT"); } catch (error) {}
   try { await run("ALTER TABLE bookings ADD COLUMN delivery_city TEXT"); } catch (error) {}
