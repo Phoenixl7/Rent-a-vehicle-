@@ -465,9 +465,12 @@ function renderMyBookings() {
         <td>${refundText}</td>
         <td>${reportSummary}</td>
         <td>
-          ${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ""}
-          ${canReportDamage ? `<button class="btn" onclick="toggleDamageReportForm('${b.id}')">Report Damage/Accident</button>` : ""}
-          ${!canCancel && !canReportDamage ? "-" : ""}
+          ${(canCancel || canReportDamage) ? `
+            <div class="booking-actions">
+              ${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ""}
+              ${canReportDamage ? `<button class="btn" onclick="toggleDamageReportForm('${b.id}')">Report Damage/Accident</button>` : ""}
+            </div>
+          ` : "-"}
           ${canReportDamage ? `
             <form id="damageForm-${b.id}" class="damage-form" style="display:none;" onsubmit="submitDamageReport(event, '${b.id}')">
               <label>Describe damage/accident</label>
@@ -583,6 +586,11 @@ function adminPage() {
       <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
       <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
+      <td>
+        ${(Array.isArray(b.damageReports) && b.damageReports.length)
+          ? `<button class="btn" onclick="viewDamageReports('${b.id}')">View (${b.damageReports.length})</button>`
+          : "No reports"}
+      </td>
       <td>
         <button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>
         <button class="btn" onclick="updateBooking('${b.id}', 'delivered')">Mark Delivered</button>
@@ -753,6 +761,29 @@ function updateBooking(id, status) {
   location.reload();
 }
 
+function viewDamageReports(bookingId) {
+  const bookings = getData(storageKeys.bookings);
+  const booking = bookings.find((b) => b.id === bookingId);
+  const reports = booking && Array.isArray(booking.damageReports) ? booking.damageReports : [];
+  if (!reports.length) return alert("No damage reports available for this booking.");
+
+  const win = window.open("", "_blank");
+  if (!win) return alert("Popup blocked. Please allow popups to view damage reports.");
+
+  const reportMarkup = reports.map((r, index) => `
+    <div style="border:1px solid #ddd;border-radius:10px;padding:12px;margin-bottom:12px;">
+      <h4 style="margin:0 0 8px;">Report ${reports.length - index} - ${r.createdAt || "N/A"}</h4>
+      <p style="margin:0 0 10px;">${r.description}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${(r.images || []).map((img, idx) => `<a href="${img}" target="_blank" rel="noopener noreferrer" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;text-decoration:none;">Image ${idx + 1}</a>`).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  win.document.write(`<title>Damage Reports - ${booking.vehicleName}</title><div style="font-family:sans-serif;padding:16px;"><h2 style="margin-top:0;">Damage Reports</h2><p><strong>Booking:</strong> ${booking.vehicleName} (${booking.userName})</p>${reportMarkup}</div>`);
+  win.document.close();
+}
+
 initData();
 bindAuthForms();
 bindSessionUi();
@@ -769,6 +800,7 @@ window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
+window.viewDamageReports = viewDamageReports;
 window.toggleDamageReportForm = toggleDamageReportForm;
 window.submitDamageReport = submitDamageReport;
 window.setUserVerification = setUserVerification;
