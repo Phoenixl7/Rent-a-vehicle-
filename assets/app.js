@@ -210,7 +210,7 @@ function renderVehicleDetails() {
 
   target.innerHTML = `
     <div class="card">
-      ${getVehicleImages(v).map((img)=>`<img class="vehicle-hero" src="${img}" alt="${v.name}" onerror="this.src='assets/images/car-default.svg'">`).join("")}<h2>${v.name}</h2>
+      ${getVehicleImages(v).map((img)=>`<img class="vehicle-hero vehicle-zoomable" src="${img}" alt="${v.name}" onclick="openImagePreview('${img}')" onerror="this.src='assets/images/car-default.svg'">`).join("")}<h2>${v.name}</h2>
       <p>${v.description}</p>
       <p><strong>Type:</strong> ${v.type}</p>
       <p><strong>Transmission:</strong> ${v.transmission}</p>
@@ -220,6 +220,35 @@ function renderVehicleDetails() {
       <a href="booking.html" class="btn btn-primary">Book Now</a>
     </div>
   `;
+
+  ensureImagePreviewModal();
+}
+
+function ensureImagePreviewModal() {
+  if (document.getElementById("imagePreviewModal")) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <div id="imagePreviewModal" class="image-preview-overlay" style="display:none;" onclick="closeImagePreview(event)">
+      <button class="image-preview-close" onclick="closeImagePreview(event)" aria-label="Close image preview">✕</button>
+      <img id="imagePreviewTarget" class="image-preview-image" src="" alt="Vehicle preview">
+    </div>
+  `);
+}
+
+function openImagePreview(src) {
+  ensureImagePreviewModal();
+  const modal = document.getElementById("imagePreviewModal");
+  const target = document.getElementById("imagePreviewTarget");
+  if (!modal || !target) return;
+  target.src = src;
+  modal.style.display = "flex";
+}
+
+function closeImagePreview(event) {
+  if (event) event.preventDefault();
+  const modal = document.getElementById("imagePreviewModal");
+  if (!modal) return;
+  if (event && event.target && event.target.id !== "imagePreviewModal" && !event.target.classList.contains("image-preview-close")) return;
+  modal.style.display = "none";
 }
 
 function bookingPage() {
@@ -832,6 +861,8 @@ window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
+window.openImagePreview = openImagePreview;
+window.closeImagePreview = closeImagePreview;
 window.viewDamageReports = viewDamageReports;
 window.toggleDamageReportForm = toggleDamageReportForm;
 window.submitDamageReport = submitDamageReport;
