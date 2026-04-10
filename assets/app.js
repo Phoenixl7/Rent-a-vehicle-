@@ -144,11 +144,13 @@ function bindSessionUi() {
   slot.innerHTML = user.role === "admin"
     ? `
       <span class="small">Hi, ${user.name}</span>
+      <a href="profile.html" class="btn">Profile</a>
       <a href="admin.html" class="btn">Admin Panel</a>
       <button class="btn" id="logoutBtn">Logout</button>
     `
     : `
       <span class="small">Hi, ${user.name}</span>
+      <a href="profile.html" class="btn">Profile</a>
       <button class="btn" id="logoutBtn">Logout</button>
     `;
   document.getElementById("logoutBtn").addEventListener("click", logout);
@@ -527,6 +529,7 @@ function submitDamageReport(event, bookingId) {
 
 function profilePage() {
   const form = document.getElementById("profileForm");
+  const passwordForm = document.getElementById("passwordForm");
   if (!form) return;
   const user = requireAuth();
   if (!user) return;
@@ -550,6 +553,35 @@ function profilePage() {
     });
     if (updated) document.getElementById("profileBanner").style.display = "block";
   });
+
+  if (passwordForm) {
+    passwordForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById("currentPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (currentPassword !== user.password) {
+        return alert("Current password is incorrect.");
+      }
+      if (newPassword.length < 6) {
+        return alert("New password must be at least 6 characters.");
+      }
+      if (newPassword !== confirmPassword) {
+        return alert("New password and confirm password do not match.");
+      }
+      if (newPassword === currentPassword) {
+        return alert("New password must be different from current password.");
+      }
+
+      const updated = updateUserRecord(user.id, { password: newPassword });
+      if (updated) {
+        passwordForm.reset();
+        const banner = document.getElementById("passwordBanner");
+        if (banner) banner.style.display = "block";
+      }
+    });
+  }
 }
 
 function adminPage() {
