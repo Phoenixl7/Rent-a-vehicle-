@@ -432,11 +432,27 @@ function renderMyBookings() {
   table.innerHTML = rows.map((b) => {
     const policy = getCancellationPolicy(b);
     const canCancel = b.status !== "cancelled" && policy.allowed;
+    const canReportDamage = b.status === "delivered";
+    const reports = Array.isArray(b.damageReports) ? b.damageReports : [];
     const refundText = b.status === "cancelled"
       ? `${formatCurrency(b.refundAmount || 0)} (${b.refundPolicy || ""})`
       : policy.allowed
         ? `${formatCurrency(policy.refund)} (${policy.message})`
         : "N/A";
+    const reportSummary = reports.length
+      ? `${reports.length} report${reports.length > 1 ? "s" : ""}`
+      : "No reports";
+    const reportItems = reports.length
+      ? `<div class="damage-report-list">${reports.map((r) => `
+          <div class="damage-report-item">
+            <p><strong>${r.createdAt || "Reported"}</strong></p>
+            <p>${r.description}</p>
+            <div class="damage-report-images">
+              ${(r.images || []).map((img, idx) => `<a href="${img}" target="_blank" rel="noopener noreferrer">Image ${idx + 1}</a>`).join("")}
+            </div>
+          </div>
+        `).join("")}</div>`
+      : "";
 
     return `
       <tr>
@@ -447,10 +463,63 @@ function renderMyBookings() {
         <td><span class="status ${b.status}">${b.status}</span></td>
         <td>${b.payment}</td>
         <td>${refundText}</td>
-        <td>${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : "-"}</td>
+        <td>${reportSummary}</td>
+        <td>
+          ${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ""}
+          ${canReportDamage ? `<button class="btn" onclick="toggleDamageReportForm('${b.id}')">Report Damage/Accident</button>` : ""}
+          ${!canCancel && !canReportDamage ? "-" : ""}
+          ${canReportDamage ? `
+            <form id="damageForm-${b.id}" class="damage-form" style="display:none;" onsubmit="submitDamageReport(event, '${b.id}')">
+              <label>Describe damage/accident</label>
+              <textarea required name="description" placeholder="Explain what happened and list visible damage"></textarea>
+              <label>Upload photos (multiple)</label>
+              <input required name="images" type="file" accept="image/*" multiple>
+              <button class="btn btn-primary" type="submit">Submit Report</button>
+            </form>
+            ${reportItems}
+          ` : ""}
+        </td>
       </tr>
     `;
-  }).join("") || "<tr><td colspan='8'>No bookings yet.</td></tr>";
+  }).join("") || "<tr><td colspan='9'>No bookings yet.</td></tr>";
+}
+
+function toggleDamageReportForm(bookingId) {
+  const form = document.getElementById(`damageForm-${bookingId}`);
+  if (!form) return;
+  form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+function submitDamageReport(event, bookingId) {
+  event.preventDefault();
+  const form = event.target;
+  const description = form.description.value.trim();
+  const files = Array.from(form.images.files || []);
+  if (!description) return alert("Please add a damage description.");
+  if (!files.length) return alert("Please upload at least one image.");
+
+  const readers = files.map((file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  }));
+
+  Promise.all(readers).then((images) => {
+    const bookings = getData(storageKeys.bookings);
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx < 0) return;
+    const report = {
+      id: `dr_${Date.now()}`,
+      description,
+      images,
+      createdAt: new Date().toLocaleString(),
+    };
+    const current = Array.isArray(bookings[idx].damageReports) ? bookings[idx].damageReports : [];
+    bookings[idx].damageReports = [report, ...current];
+    setData(storageKeys.bookings, bookings);
+    alert("Damage/accident report submitted successfully.");
+    renderMyBookings();
+  });
 }
 
 function profilePage() {
@@ -516,6 +585,7 @@ function adminPage() {
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>
         <button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>
+        <button class="btn" onclick="updateBooking('${b.id}', 'delivered')">Mark Delivered</button>
         <button class="btn btn-danger" onclick="updateBooking('${b.id}', 'cancelled')">Cancel</button>
       </td>
     </tr>
@@ -699,6 +769,8 @@ window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
+window.toggleDamageReportForm = toggleDamageReportForm;
+window.submitDamageReport = submitDamageReport;
 window.setUserVerification = setUserVerification;
 window.viewLicense = viewLicense;
 window.viewIdProof = viewIdProof;

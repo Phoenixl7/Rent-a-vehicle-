@@ -143,6 +143,7 @@ label { color: var(--muted); font-size: 0.92rem; }
 .status.pending { background: rgba(255, 214, 10, 0.2); color: #ffd60a; }
 .status.approved { background: rgba(52, 199, 89, 0.2); color: var(--success); }
 .status.cancelled { background: rgba(255, 69, 58, 0.2); color: var(--danger); }
+.status.delivered { background: rgba(41, 151, 255, 0.2); color: #7cc4ff; }
 
 .footer {
   color: var(--muted);
@@ -178,4 +179,44 @@ label { color: var(--muted); font-size: 0.92rem; }
   border-radius: 14px;
   border: 1px solid var(--border);
   margin-bottom: 14px;
+}
+
+.damage-form {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.damage-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.damage-report-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.damage-report-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.damage-report-item p {
+  margin: 0 0 8px;
+}
+
+.damage-report-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.damage-report-images a {
+  font-size: 0.85rem;
+  color: #9ed1ff;
 }
