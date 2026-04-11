@@ -694,6 +694,7 @@ function adminPage() {
   }).join("");
 
   const vehicleForm = document.getElementById("vehicleForm");
+  resetVehicleImageEditor();
   vehicleForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("vehicleId").value || `v${Date.now()}`;
@@ -722,6 +723,7 @@ function adminPage() {
       const idx = list.findIndex((v) => v.id === id);
       if (idx >= 0) list[idx] = payload; else list.push(payload);
       setData(storageKeys.vehicles, list);
+      resetVehicleImageEditor();
       location.reload();
     };
 
@@ -742,6 +744,44 @@ function adminPage() {
       saveVehicle([]);
     }
   });
+}
+
+function resetVehicleImageEditor() {
+  const hidden = document.getElementById("vehicleImageExisting");
+  const preview = document.getElementById("vehicleImagePreview");
+  const fileInput = document.getElementById("vehicleImageFile");
+  if (hidden) hidden.value = "[]";
+  if (preview) preview.innerHTML = "";
+  if (fileInput) fileInput.value = "";
+}
+
+function renderVehicleImageEditor(images = [], vehicleName = "Vehicle") {
+  const hidden = document.getElementById("vehicleImageExisting");
+  const preview = document.getElementById("vehicleImagePreview");
+  if (!hidden || !preview) return;
+  hidden.value = JSON.stringify(images);
+  if (!images.length) {
+    preview.innerHTML = `<span class="small">No images selected.</span>`;
+    return;
+  }
+  preview.innerHTML = images.map((img, idx) => `
+    <div class="vehicle-image-edit-item">
+      <img src="${img}" alt="${vehicleName}" class="vehicle-thumb" style="max-width:220px;height:120px;margin-right:8px;" onerror="this.src='assets/images/car-default.svg'"/>
+      <button type="button" class="btn btn-danger" onclick="removeVehicleImage(${idx})">Remove</button>
+    </div>
+  `).join("") + `<div><button type="button" class="btn" onclick="clearVehicleImages()">Remove All Images</button></div>`;
+}
+
+function removeVehicleImage(index) {
+  const hidden = document.getElementById("vehicleImageExisting");
+  if (!hidden) return;
+  const current = hidden.value ? JSON.parse(hidden.value) : [];
+  const next = current.filter((_, idx) => idx !== index);
+  renderVehicleImageEditor(next);
+}
+
+function clearVehicleImages() {
+  renderVehicleImageEditor([]);
 }
 
 
@@ -801,9 +841,7 @@ function editVehicle(id) {
   if (!v) return;
   document.getElementById("vehicleId").value = v.id;
   const existingImages = getVehicleImages(v);
-  document.getElementById("vehicleImageExisting").value = JSON.stringify(existingImages);
-  document.getElementById("vehicleImagePreview").innerHTML = existingImages.map((img)=>`<img src="${img}" alt="${v.name}" class="vehicle-thumb" style="max-width:220px;height:120px;margin-right:8px;" onerror="this.src='assets/images/car-default.svg'"/>`).join("");
-  document.getElementById("vehicleImageFile").value = "";
+  renderVehicleImageEditor(existingImages, v.name);
   document.getElementById("vehicleName").value = v.name;
   document.getElementById("vehicleType").value = v.type;
   document.getElementById("vehicleStock").value = v.stock ?? 0;
@@ -867,6 +905,8 @@ window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
+window.removeVehicleImage = removeVehicleImage;
+window.clearVehicleImages = clearVehicleImages;
 window.openImagePreview = openImagePreview;
 window.closeImagePreview = closeImagePreview;
 window.viewDamageReports = viewDamageReports;

@@ -269,3 +269,10 @@ label { color: var(--muted); font-size: 0.92rem; }
   align-items: center;
   margin-bottom: 8px;
 }
+
+.vehicle-image-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
