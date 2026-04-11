@@ -180,14 +180,17 @@ function renderVehicles() {
   const draw = () => {
     const vehicles = applyVehicleFilters(getData(storageKeys.vehicles));
     wrap.innerHTML = vehicles.length
-      ? vehicles.map((v) => `
+      ? vehicles.map((v) => {
+        const isOutOfStock = (v.stock ?? 0) <= 0;
+        return `
           <div class="card">
             <img class="vehicle-thumb" src="${getVehicleImages(v)[0]}" alt="${v.name}" onerror="this.src='assets/images/car-default.svg'"><h3>${v.name}</h3>
-            <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p><p class="small">Stock: ${v.stock ?? 0}</p>
+            <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p><p class="small">Stock: ${v.stock ?? 0} ${isOutOfStock ? '<span class="status cancelled">Unavailable</span>' : ""}</p>
             <p>${formatCurrency(v.price)}/day</p>
-            <a class="btn btn-primary" href="vehicle-details.html?id=${v.id}">View Details</a>
+            <a class="btn ${isOutOfStock ? "" : "btn-primary"}" href="vehicle-details.html?id=${v.id}">View Details</a>
           </div>
-        `).join("")
+        `;
+      }).join("")
       : `<div class="card"><p>No vehicles found for your search/filter.</p></div>`;
   };
 
@@ -215,9 +218,12 @@ function renderVehicleDetails() {
       <p><strong>Type:</strong> ${v.type}</p>
       <p><strong>Transmission:</strong> ${v.transmission}</p>
       <p><strong>Seats:</strong> ${v.seats}</p>
-      <p><strong>Fuel:</strong> ${v.fuel}</p><p><strong>Stock:</strong> ${v.stock ?? 0}</p>
+      <p><strong>Fuel:</strong> ${v.fuel}</p><p><strong>Stock:</strong> ${v.stock ?? 0} ${((v.stock ?? 0) <= 0) ? '<span class="status cancelled">Unavailable</span>' : ""}</p>
       <h3>${formatCurrency(v.price)}/day</h3>
-      <a href="booking.html" class="btn btn-primary">Book Now</a>
+      ${((v.stock ?? 0) <= 0)
+        ? `<button class="btn btn-danger" disabled>Currently Unavailable</button>`
+        : `<a href="booking.html" class="btn btn-primary">Book Now</a>`
+      }
     </div>
   `;
 
