@@ -210,6 +210,8 @@ function renderVehicleDetails() {
   const v = getVehicleById(id);
   if (!v) return (target.innerHTML = "<p>Vehicle not found.</p>");
   localStorage.setItem("vr_selected_vehicle", id);
+  const sessionUser = getSessionUser();
+  const isAdminUser = sessionUser?.role === "admin";
 
   target.innerHTML = `
     <div class="card">
@@ -220,7 +222,9 @@ function renderVehicleDetails() {
       <p><strong>Seats:</strong> ${v.seats}</p>
       <p><strong>Fuel:</strong> ${v.fuel}</p><p><strong>Stock:</strong> ${v.stock ?? 0} ${((v.stock ?? 0) <= 0) ? '<span class="status cancelled">Unavailable</span>' : ""}</p>
       <h3>${formatCurrency(v.price)}/day</h3>
-      ${((v.stock ?? 0) <= 0)
+      ${isAdminUser
+        ? `<button class="btn" disabled>Admin accounts cannot book vehicles</button>`
+        : ((v.stock ?? 0) <= 0)
         ? `<button class="btn btn-danger" disabled>Currently Unavailable</button>`
         : `<a href="booking.html" class="btn btn-primary">Book Now</a>`
       }
@@ -262,6 +266,11 @@ function bookingPage() {
   if (!form) return;
   const user = requireAuth();
   if (!user) return;
+  if (user.role === "admin") {
+    alert("Admin accounts cannot book vehicles.");
+    location.href = "vehicles.html";
+    return;
+  }
 
   if (!user.verified) {
     alert("Please verify your account by uploading your driving license in My Bookings dashboard before renting a vehicle.");
@@ -324,6 +333,11 @@ function paymentPage() {
   if (!form) return;
   const user = requireAuth();
   if (!user) return;
+  if (user.role === "admin") {
+    alert("Admin accounts cannot complete payments for bookings.");
+    location.href = "vehicles.html";
+    return;
+  }
 
   const draft = JSON.parse(localStorage.getItem("vr_draft_booking") || "null");
   if (!draft) return (location.href = "vehicles.html");
