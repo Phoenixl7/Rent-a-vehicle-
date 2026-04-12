@@ -132,6 +132,11 @@ input, select, textarea {
   margin: 8px 0 14px;
 }
 
+select option {
+  color: #111827;
+  background: #ffffff;
+}
+
 label { color: var(--muted); font-size: 0.92rem; }
 
 .kpi {
