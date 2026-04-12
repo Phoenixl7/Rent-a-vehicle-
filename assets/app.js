@@ -598,61 +598,77 @@ function submitDamageReport(event, bookingId) {
 }
 
 function profilePage() {
-  const form = document.getElementById("profileForm");
-  const changePasswordBtn = document.getElementById("changePasswordBtn");
+  const nameText = document.getElementById("profileNameText");
+  const emailText = document.getElementById("profileEmailText");
+  const phoneText = document.getElementById("profilePhoneText");
+  if (!nameText || !emailText || !phoneText) return;
+  const user = requireAuth();
+  if (!user) return;
+
+  nameText.textContent = user.name;
+  emailText.textContent = user.email;
+  phoneText.textContent = user.phone || "-";
+}
+
+function updateProfilePage() {
+  const form = document.getElementById("updateProfileForm");
   if (!form) return;
   const user = requireAuth();
   if (!user) return;
 
-  document.getElementById("profileName").value = user.name;
-  document.getElementById("profileEmail").value = user.email;
-  document.getElementById("profilePhone").value = user.phone || "";
+  document.getElementById("updateProfileName").value = user.name;
+  document.getElementById("updateProfileEmail").value = user.email;
+  document.getElementById("updateProfilePhone").value = user.phone || "";
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const confirmPassword = document.getElementById("profileConfirmPassword").value;
+    const confirmPassword = document.getElementById("updateProfileConfirmPassword").value;
     if (confirmPassword !== user.password) {
       return alert("Current password is required to confirm profile update.");
     }
     const updated = updateUserRecord(user.id, {
-      name: document.getElementById("profileName").value,
-      phone: document.getElementById("profilePhone").value,
+      name: document.getElementById("updateProfileName").value,
+      phone: document.getElementById("updateProfilePhone").value,
     });
     if (updated) {
-      document.getElementById("profileBanner").style.display = "block";
-      document.getElementById("profileConfirmPassword").value = "";
+      document.getElementById("updateProfileBanner").style.display = "block";
+      document.getElementById("updateProfileConfirmPassword").value = "";
     }
   });
+}
 
-  if (changePasswordBtn) {
-    changePasswordBtn.addEventListener("click", () => {
-      const currentPassword = window.prompt("Enter your current password:");
-      if (currentPassword === null) return;
-      if (currentPassword !== user.password) {
-        return alert("Current password is incorrect.");
-      }
-      const newPassword = window.prompt("Enter your new password (minimum 6 characters):");
-      if (newPassword === null) return;
-      const confirmPassword = window.prompt("Confirm your new password:");
-      if (confirmPassword === null) return;
+function changePasswordPage() {
+  const form = document.getElementById("changePasswordForm");
+  if (!form) return;
+  const user = requireAuth();
+  if (!user) return;
 
-      if (newPassword.length < 6) {
-        return alert("New password must be at least 6 characters.");
-      }
-      if (newPassword !== confirmPassword) {
-        return alert("New password and confirm password do not match.");
-      }
-      if (newPassword === currentPassword) {
-        return alert("New password must be different from current password.");
-      }
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById("changeCurrentPassword").value;
+    const newPassword = document.getElementById("changeNewPassword").value;
+    const confirmPassword = document.getElementById("changeConfirmPassword").value;
 
-      const updated = updateUserRecord(user.id, { password: newPassword });
-      if (updated) {
-        const banner = document.getElementById("passwordBanner");
-        if (banner) banner.style.display = "block";
-      }
-    });
-  }
+    if (currentPassword !== user.password) {
+      return alert("Current password is incorrect.");
+    }
+    if (newPassword.length < 6) {
+      return alert("New password must be at least 6 characters.");
+    }
+    if (newPassword !== confirmPassword) {
+      return alert("New password and confirm password do not match.");
+    }
+    if (newPassword === currentPassword) {
+      return alert("New password must be different from current password.");
+    }
+
+    const updated = updateUserRecord(user.id, { password: newPassword });
+    if (updated) {
+      form.reset();
+      const banner = document.getElementById("changePasswordBanner");
+      if (banner) banner.style.display = "block";
+    }
+  });
 }
 
 function adminPage() {
@@ -934,6 +950,8 @@ bookingPage();
 paymentPage();
 renderMyBookings();
 profilePage();
+updateProfilePage();
+changePasswordPage();
 adminPage();
 
 window.logout = logout;
