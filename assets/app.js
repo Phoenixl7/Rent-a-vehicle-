@@ -176,22 +176,43 @@ function applyVehicleFilters(vehicles) {
 function renderVehicles() {
   const wrap = document.getElementById("vehicleGrid");
   if (!wrap) return;
+  const twoWheelerTypes = new Set(["bike", "scooter", "motorcycle"]);
+  const vehicleCard = (v) => {
+    const isOutOfStock = (v.stock ?? 0) <= 0;
+    return `
+      <div class="card">
+        <img class="vehicle-thumb" src="${getVehicleImages(v)[0]}" alt="${v.name}" onerror="this.src='assets/images/car-default.svg'"><h3>${v.name}</h3>
+        <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p><p class="small">Stock: ${v.stock ?? 0} ${isOutOfStock ? '<span class="status cancelled">Unavailable</span>' : ""}</p>
+        <p>${formatCurrency(v.price)}/day</p>
+        <a class="btn ${isOutOfStock ? "" : "btn-primary"}" href="vehicle-details.html?id=${v.id}">View Details</a>
+      </div>
+    `;
+  };
 
   const draw = () => {
     const vehicles = applyVehicleFilters(getData(storageKeys.vehicles));
-    wrap.innerHTML = vehicles.length
-      ? vehicles.map((v) => {
-        const isOutOfStock = (v.stock ?? 0) <= 0;
-        return `
-          <div class="card">
-            <img class="vehicle-thumb" src="${getVehicleImages(v)[0]}" alt="${v.name}" onerror="this.src='assets/images/car-default.svg'"><h3>${v.name}</h3>
-            <p class="small">${v.type} • ${v.seats} seats • ${v.fuel}</p><p class="small">Stock: ${v.stock ?? 0} ${isOutOfStock ? '<span class="status cancelled">Unavailable</span>' : ""}</p>
-            <p>${formatCurrency(v.price)}/day</p>
-            <a class="btn ${isOutOfStock ? "" : "btn-primary"}" href="vehicle-details.html?id=${v.id}">View Details</a>
-          </div>
-        `;
-      }).join("")
-      : `<div class="card"><p>No vehicles found for your search/filter.</p></div>`;
+    const twoWheelers = vehicles.filter((v) => twoWheelerTypes.has((v.type || "").toLowerCase()));
+    const fourWheelers = vehicles.filter((v) => !twoWheelerTypes.has((v.type || "").toLowerCase()));
+
+    if (!vehicles.length) {
+      wrap.innerHTML = `<div class="card"><p>No vehicles found for your search/filter.</p></div>`;
+      return;
+    }
+
+    wrap.innerHTML = `
+      <div class="vehicle-category">
+        <h3>Four Wheelers</h3>
+        <div class="grid grid-3">
+          ${fourWheelers.length ? fourWheelers.map(vehicleCard).join("") : `<div class="card"><p>No four wheelers available.</p></div>`}
+        </div>
+      </div>
+      <div class="vehicle-category">
+        <h3>Two Wheelers</h3>
+        <div class="grid grid-3">
+          ${twoWheelers.length ? twoWheelers.map(vehicleCard).join("") : `<div class="card"><p>No two wheelers available.</p></div>`}
+        </div>
+      </div>
+    `;
   };
 
   document.getElementById("vehicleSearch")?.addEventListener("input", draw);
