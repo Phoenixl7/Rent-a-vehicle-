@@ -13,6 +13,8 @@ const defaultVehicles = [
 
   { id: "v5", name: "KTM Duke 390", type: "Bike", price: 1999, image: "assets/images/bike-sport.svg", seats: 2, fuel: "Petrol", transmission: "Manual", description: "Lightweight sport bike with sharp styling and thrilling performance.", stock: 6 },
   { id: "v6", name: "Honda Activa 6G", type: "Scooter", price: 999, image: "assets/images/bike-scooter.svg", seats: 2, fuel: "Petrol", transmission: "CVT", description: "Reliable city scooter with smooth ride quality and excellent mileage.", stock: 8 },
+  { id: "v7", name: "Royal Enfield Classic 350", type: "Bike", price: 1699, image: "assets/images/bike-sport.svg", seats: 2, fuel: "Petrol", transmission: "Manual", description: "Classic cruiser bike with comfortable ergonomics and iconic road presence.", stock: 5 },
+  { id: "v8", name: "TVS Ntorq 125", type: "Scooter", price: 1099, image: "assets/images/bike-scooter.svg", seats: 2, fuel: "Petrol", transmission: "CVT", description: "Sporty scooter with agile handling, ideal for city commutes.", stock: 7 },
 ];
 
 function getData(key, fallback = []) {

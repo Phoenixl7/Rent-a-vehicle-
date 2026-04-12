@@ -155,7 +155,9 @@ async function initDb() {
       ["Toyota Fortuner", "SUV", 3, 6499, "assets/images/car-suv.svg", 7, "Diesel", "Automatic", "Rugged family SUV ideal for city and off-road journeys."],
       ["Mercedes C-Class", "Luxury", 2, 12999, "assets/images/car-luxury.svg", 5, "Petrol", "Automatic", "Elegant luxury ride with premium cabin and smooth handling."],
       ["KTM Duke 390", "Bike", 6, 1999, "assets/images/bike-sport.svg", 2, "Petrol", "Manual", "Lightweight sport bike with sharp styling and thrilling performance."],
-      ["Honda Activa 6G", "Scooter", 8, 999, "assets/images/bike-scooter.svg", 2, "Petrol", "CVT", "Reliable city scooter with smooth ride quality and excellent mileage."]
+      ["Honda Activa 6G", "Scooter", 8, 999, "assets/images/bike-scooter.svg", 2, "Petrol", "CVT", "Reliable city scooter with smooth ride quality and excellent mileage."],
+      ["Royal Enfield Classic 350", "Bike", 5, 1699, "assets/images/bike-sport.svg", 2, "Petrol", "Manual", "Classic cruiser bike with comfortable ergonomics and iconic road presence."],
+      ["TVS Ntorq 125", "Scooter", 7, 1099, "assets/images/bike-scooter.svg", 2, "Petrol", "CVT", "Sporty scooter with agile handling, ideal for city commutes."]
     ];
 
     for (const v of seedVehicles) {
