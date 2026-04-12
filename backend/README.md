@@ -4,12 +4,24 @@ Express + SQLite backend that powers authentication, vehicles, bookings, user ve
 
 ## Run
 
+From repository root:
+
 ```bash
 npm install
 npm start
 ```
 
+Or from the `backend/` folder:
+
+```bash
+cd backend
+npm install
+npm start
+```
+
 Server runs on `http://localhost:3000` and serves frontend static files from repo root.
+
+If you see `Error: Cannot find module 'express'`, dependencies are not installed in your current working directory. Run `npm install` in root (or `backend/`) before starting the server.
 
 ## API Overview
 
