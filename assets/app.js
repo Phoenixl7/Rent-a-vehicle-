@@ -65,6 +65,13 @@ function initData() {
 
   if (!localStorage.getItem(storageKeys.vehicles)) {
     setData(storageKeys.vehicles, defaultVehicles);
+  } else {
+    const existingVehicles = getData(storageKeys.vehicles, []);
+    const existingIds = new Set(existingVehicles.map((v) => v.id));
+    const missingDefaults = defaultVehicles.filter((v) => !existingIds.has(v.id));
+    if (missingDefaults.length) {
+      setData(storageKeys.vehicles, [...existingVehicles, ...missingDefaults]);
+    }
   }
 
   if (!localStorage.getItem(storageKeys.bookings)) {
