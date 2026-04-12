@@ -599,7 +599,7 @@ function submitDamageReport(event, bookingId) {
 
 function profilePage() {
   const form = document.getElementById("profileForm");
-  const passwordForm = document.getElementById("passwordForm");
+  const changePasswordBtn = document.getElementById("changePasswordBtn");
   if (!form) return;
   const user = requireAuth();
   if (!user) return;
@@ -608,32 +608,34 @@ function profilePage() {
   document.getElementById("profileEmail").value = user.email;
   document.getElementById("profilePhone").value = user.phone || "";
 
-  const tag = document.getElementById("profileVerification");
-  if (tag) {
-    if (user.verificationStatus === "verified") tag.innerHTML = `<span class="status approved">Verified</span>`;
-    else if (user.verificationStatus === "pending") tag.innerHTML = `<span class="status pending">Pending Approval</span>`;
-    else tag.innerHTML = `<span class="status cancelled">Not Verified</span>`;
-  }
-
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    const confirmPassword = document.getElementById("profileConfirmPassword").value;
+    if (confirmPassword !== user.password) {
+      return alert("Current password is required to confirm profile update.");
+    }
     const updated = updateUserRecord(user.id, {
       name: document.getElementById("profileName").value,
       phone: document.getElementById("profilePhone").value,
     });
-    if (updated) document.getElementById("profileBanner").style.display = "block";
+    if (updated) {
+      document.getElementById("profileBanner").style.display = "block";
+      document.getElementById("profileConfirmPassword").value = "";
+    }
   });
 
-  if (passwordForm) {
-    passwordForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const currentPassword = document.getElementById("currentPassword").value;
-      const newPassword = document.getElementById("newPassword").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
-
+  if (changePasswordBtn) {
+    changePasswordBtn.addEventListener("click", () => {
+      const currentPassword = window.prompt("Enter your current password:");
+      if (currentPassword === null) return;
       if (currentPassword !== user.password) {
         return alert("Current password is incorrect.");
       }
+      const newPassword = window.prompt("Enter your new password (minimum 6 characters):");
+      if (newPassword === null) return;
+      const confirmPassword = window.prompt("Confirm your new password:");
+      if (confirmPassword === null) return;
+
       if (newPassword.length < 6) {
         return alert("New password must be at least 6 characters.");
       }
@@ -646,7 +648,6 @@ function profilePage() {
 
       const updated = updateUserRecord(user.id, { password: newPassword });
       if (updated) {
-        passwordForm.reset();
         const banner = document.getElementById("passwordBanner");
         if (banner) banner.style.display = "block";
       }
