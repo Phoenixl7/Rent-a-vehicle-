@@ -709,7 +709,7 @@ function adminPage() {
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>
         ${(Array.isArray(b.damageReports) && b.damageReports.length)
-          ? `<button class="btn" onclick="viewDamageReports('${b.id}')">View (${b.damageReports.length})</button>`
+          ? `<a class="btn" href="damage-reports.html?bookingId=${b.id}">View (${b.damageReports.length})</a>`
           : "No reports"}
       </td>
       <td>
@@ -943,6 +943,40 @@ function viewDamageReports(bookingId) {
   win.document.close();
 }
 
+function damageReportsPage() {
+  const container = document.getElementById("damageReportsContent");
+  if (!container) return;
+  const admin = requireAuth(true);
+  if (!admin) return;
+
+  const bookingId = new URLSearchParams(location.search).get("bookingId");
+  const bookings = getData(storageKeys.bookings);
+  const booking = bookings.find((b) => b.id === bookingId);
+  if (!booking) {
+    container.innerHTML = `<div class="card"><p>Booking not found.</p></div>`;
+    return;
+  }
+
+  const reports = Array.isArray(booking.damageReports) ? booking.damageReports : [];
+  container.innerHTML = `
+    <div class="card">
+      <h3>Damage Reports</h3>
+      <p class="small"><strong>Booking:</strong> ${booking.vehicleName} · ${booking.userName}</p>
+      ${reports.length
+        ? reports.map((r, idx) => `
+          <div class="damage-report-item">
+            <p><strong>Report ${reports.length - idx}</strong> · ${r.createdAt || "N/A"}</p>
+            <p>${r.description}</p>
+            <div class="damage-report-images">
+              ${(r.images || []).map((img, i) => `<a class="btn" href="${img}" target="_blank" rel="noopener noreferrer">Image ${i + 1}</a>`).join("")}
+            </div>
+          </div>
+        `).join("")
+        : "<p>No damage reports available for this booking.</p>"}
+    </div>
+  `;
+}
+
 initData();
 bindAuthForms();
 bindSessionUi();
@@ -954,6 +988,7 @@ renderMyBookings();
 profilePage();
 updateProfilePage();
 changePasswordPage();
+damageReportsPage();
 adminPage();
 
 window.logout = logout;
