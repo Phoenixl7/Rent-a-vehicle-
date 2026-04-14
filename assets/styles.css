@@ -159,6 +159,7 @@ label { color: var(--muted); font-size: 0.92rem; }
 .status.approved { background: rgba(52, 199, 89, 0.2); color: var(--success); }
 .status.cancelled { background: rgba(255, 69, 58, 0.2); color: var(--danger); }
 .status.delivered { background: rgba(41, 151, 255, 0.2); color: #7cc4ff; }
+.status.returned { background: rgba(52, 199, 89, 0.18); color: #9cf5b3; }
 
 .footer {
   color: var(--muted);

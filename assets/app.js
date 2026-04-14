@@ -564,6 +564,7 @@ function renderMyBookings() {
     const policy = getCancellationPolicy(b);
     const canCancel = b.status !== "cancelled" && b.status !== "delivered" && policy.allowed;
     const canReportDamage = b.status === "delivered";
+    const canMarkReturned = b.status === "delivered";
     const reports = Array.isArray(b.damageReports) ? b.damageReports : [];
     const refundText = b.status === "cancelled"
       ? `${formatCurrency(b.refundAmount || 0)} (${b.refundPolicy || ""})`
@@ -600,6 +601,7 @@ function renderMyBookings() {
             <div class="booking-actions">
               ${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ""}
               ${canReportDamage ? `<button class="btn" onclick="toggleDamageReportForm('${b.id}')">Report Damage/Accident</button>` : ""}
+              ${canMarkReturned ? `<button class="btn btn-primary" onclick="markBookingReturned('${b.id}')">Mark as Returned</button>` : ""}
             </div>
           ` : "-"}
           ${canReportDamage ? `
@@ -616,6 +618,29 @@ function renderMyBookings() {
       </tr>
     `;
   }).join("") || "<tr><td colspan='9'>No bookings yet.</td></tr>";
+}
+
+function markBookingReturned(bookingId) {
+  const bookings = getData(storageKeys.bookings);
+  const idx = bookings.findIndex((b) => b.id === bookingId);
+  if (idx < 0) return;
+  if (bookings[idx].status !== "delivered") {
+    return alert("Only delivered bookings can be marked as returned.");
+  }
+
+  bookings[idx].status = "returned";
+  bookings[idx].returnedAt = new Date().toLocaleString();
+  setData(storageKeys.bookings, bookings);
+
+  const vehicles = getData(storageKeys.vehicles);
+  const vIdx = vehicles.findIndex((v) => v.id === bookings[idx].vehicleId);
+  if (vIdx >= 0) {
+    vehicles[vIdx].stock = (vehicles[vIdx].stock ?? 0) + 1;
+    setData(storageKeys.vehicles, vehicles);
+  }
+
+  alert("Booking marked as returned.");
+  renderMyBookings();
 }
 
 function toggleDamageReportForm(bookingId) {
@@ -1053,6 +1078,7 @@ window.editVehicle = editVehicle;
 window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
+window.markBookingReturned = markBookingReturned;
 window.removeVehicleImage = removeVehicleImage;
 window.clearVehicleImages = clearVehicleImages;
 window.openImagePreview = openImagePreview;
