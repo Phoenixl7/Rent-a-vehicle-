@@ -317,6 +317,39 @@ function bookingPage() {
   }
   document.getElementById("bookingVehicle").textContent = `${vehicle.name} (${formatCurrency(vehicle.price)}/day) - Stock: ${vehicle.stock ?? 0}`;
 
+  const sameAddressCheckbox = document.getElementById("sameAsDeliveryAddress");
+  const returnFields = [
+    "returnAddressLine1",
+    "returnAddressLine2",
+    "returnCity",
+    "returnState",
+    "returnPincode",
+  ];
+
+  const syncReturnAddressFields = () => {
+    const checked = Boolean(sameAddressCheckbox?.checked);
+    if (!sameAddressCheckbox) return;
+    if (checked) {
+      document.getElementById("returnAddressLine1").value = document.getElementById("addressLine1").value;
+      document.getElementById("returnAddressLine2").value = document.getElementById("addressLine2").value;
+      document.getElementById("returnCity").value = document.getElementById("deliveryCity").value;
+      document.getElementById("returnState").value = document.getElementById("deliveryState").value;
+      document.getElementById("returnPincode").value = document.getElementById("deliveryPincode").value;
+    }
+    returnFields.forEach((id) => {
+      const field = document.getElementById(id);
+      if (!field) return;
+      field.readOnly = checked;
+    });
+  };
+
+  sameAddressCheckbox?.addEventListener("change", syncReturnAddressFields);
+  ["addressLine1", "addressLine2", "deliveryCity", "deliveryState", "deliveryPincode"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", () => {
+      if (sameAddressCheckbox?.checked) syncReturnAddressFields();
+    });
+  });
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const startDate = document.getElementById("startDate").value;
@@ -327,9 +360,19 @@ function bookingPage() {
     const deliveryCity = document.getElementById("deliveryCity").value.trim();
     const deliveryState = document.getElementById("deliveryState").value.trim();
     const deliveryPincode = document.getElementById("deliveryPincode").value.trim();
+    const returnTime = document.getElementById("returnTime").value;
+    const sameAsDeliveryAddress = Boolean(sameAddressCheckbox?.checked);
+    const returnAddressLine1 = document.getElementById("returnAddressLine1").value.trim();
+    const returnAddressLine2 = document.getElementById("returnAddressLine2").value.trim();
+    const returnCity = document.getElementById("returnCity").value.trim();
+    const returnState = document.getElementById("returnState").value.trim();
+    const returnPincode = document.getElementById("returnPincode").value.trim();
 
     if (!/^\d{6}$/.test(deliveryPincode)) {
       return alert("Pin code must be exactly 6 digits.");
+    }
+    if (!/^\d{6}$/.test(returnPincode)) {
+      return alert("Return pin code must be exactly 6 digits.");
     }
     const days = Math.max(1, Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000));
     const total = days * vehicle.price;
@@ -348,6 +391,13 @@ function bookingPage() {
       deliveryCity,
       deliveryState,
       deliveryPincode,
+      returnTime,
+      sameAsDeliveryAddress,
+      returnAddressLine1,
+      returnAddressLine2,
+      returnCity,
+      returnState,
+      returnPincode,
       total,
       status: "pending",
       payment: "unpaid",
@@ -371,7 +421,7 @@ function paymentPage() {
 
   const draft = JSON.parse(localStorage.getItem("vr_draft_booking") || "null");
   if (!draft) return (location.href = "vehicles.html");
-  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery: ${draft.addressLine1 || ""}, ${draft.addressLine2 || ""}, ${draft.deliveryCity || ""}, ${draft.deliveryState || ""} - ${draft.deliveryPincode || "N/A"}<br><span class="small">Delivery Time: ${draft.deliveryTime || "N/A"}</span></span>`;
+  document.getElementById("paymentSummary").innerHTML = `${draft.vehicleName}: ${formatCurrency(draft.total)}<br><span class="small">Delivery: ${draft.addressLine1 || ""}, ${draft.addressLine2 || ""}, ${draft.deliveryCity || ""}, ${draft.deliveryState || ""} - ${draft.deliveryPincode || "N/A"}<br><span class="small">Delivery Time: ${draft.deliveryTime || "N/A"}</span><br><span class="small">Return: ${draft.returnAddressLine1 || draft.addressLine1 || ""}, ${draft.returnAddressLine2 || draft.addressLine2 || ""}, ${draft.returnCity || draft.deliveryCity || ""}, ${draft.returnState || draft.deliveryState || ""} - ${draft.returnPincode || draft.deliveryPincode || "N/A"}</span><br><span class="small">Return Time: ${draft.returnTime || "N/A"}</span></span>`;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -538,8 +588,8 @@ function renderMyBookings() {
     return `
       <tr>
         <td>${b.vehicleName}</td>
-        <td>${b.startDate} ${b.deliveryTime ? `(${b.deliveryTime})` : ""} → ${b.endDate}</td>
-        <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
+        <td>${b.startDate} ${b.deliveryTime ? `(${b.deliveryTime})` : ""} → ${b.endDate} ${b.returnTime ? `(${b.returnTime})` : ""}</td>
+        <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `Delivery: ${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}<br><span class="small">Return: ${b.returnAddressLine1 || b.addressLine1}, ${b.returnAddressLine2 || b.addressLine2}, ${b.returnCity || b.deliveryCity}, ${b.returnState || b.deliveryState} - ${b.returnPincode || b.deliveryPincode}</span>` : "N/A"}</td>
         <td>${formatCurrency(b.total)}</td>
         <td><span class="status ${b.status}">${b.status}</span></td>
         <td>${b.payment}</td>
@@ -711,7 +761,7 @@ function adminPage() {
     <tr>
       <td>${b.userName}</td>
       <td>${b.vehicleName}</td>
-      <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}` : "N/A"}</td>
+      <td>${(b.addressLine1 && b.addressLine2 && b.deliveryCity && b.deliveryState && b.deliveryPincode) ? `Delivery: ${b.addressLine1}, ${b.addressLine2}, ${b.deliveryCity}, ${b.deliveryState} - ${b.deliveryPincode}<br><span class="small">Return: ${b.returnAddressLine1 || b.addressLine1}, ${b.returnAddressLine2 || b.addressLine2}, ${b.returnCity || b.deliveryCity}, ${b.returnState || b.deliveryState} - ${b.returnPincode || b.deliveryPincode}</span>` : "N/A"}</td>
       <td>${formatCurrency(b.total)}</td>
       <td><span class="status ${b.status}">${b.status}</span></td>
       <td>
