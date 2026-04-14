@@ -562,7 +562,7 @@ function renderMyBookings() {
   const rows = getData(storageKeys.bookings).filter((b) => b.userId === user.id);
   table.innerHTML = rows.map((b) => {
     const policy = getCancellationPolicy(b);
-    const canCancel = b.status !== "cancelled" && policy.allowed;
+    const canCancel = b.status !== "cancelled" && b.status !== "delivered" && policy.allowed;
     const canReportDamage = b.status === "delivered";
     const reports = Array.isArray(b.damageReports) ? b.damageReports : [];
     const refundText = b.status === "cancelled"
