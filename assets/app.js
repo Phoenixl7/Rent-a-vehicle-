@@ -18,6 +18,7 @@ const defaultVehicles = [
 ];
 
 let pendingReturnBookingId = null;
+let vehicleCategoryFilter = "all";
 
 function getData(key, fallback = []) {
   return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
@@ -188,6 +189,45 @@ function renderVehicles() {
   const wrap = document.getElementById("vehicleGrid");
   if (!wrap) return;
   const twoWheelerTypes = new Set(["bike", "scooter", "motorcycle"]);
+  const categoryTitle = { all: "All Vehicles", two: "Two Wheelers", four: "Four Wheelers" };
+
+  const ensureVehicleCategoryPopup = () => {
+    if (document.getElementById("vehicleCategoryPopup")) return;
+    document.body.insertAdjacentHTML("beforeend", `
+      <div id="vehicleCategoryPopup" class="return-popup-overlay" style="display:none;">
+        <div class="return-popup-card">
+          <h3>Select Vehicles to View</h3>
+          <p class="small">Choose whether you want to see all vehicles, only two wheelers, or only four wheelers.</p>
+          <div class="booking-actions" style="margin-top:12px;">
+            <button class="btn btn-primary" type="button" onclick="setVehicleCategoryFilter('all')">All Vehicles</button>
+            <button class="btn" type="button" onclick="setVehicleCategoryFilter('two')">Two Wheelers</button>
+            <button class="btn" type="button" onclick="setVehicleCategoryFilter('four')">Four Wheelers</button>
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  const openVehicleCategoryPopup = () => {
+    ensureVehicleCategoryPopup();
+    const popup = document.getElementById("vehicleCategoryPopup");
+    if (!popup) return;
+    popup.style.display = "flex";
+  };
+
+  const closeVehicleCategoryPopup = () => {
+    const popup = document.getElementById("vehicleCategoryPopup");
+    if (!popup) return;
+    popup.style.display = "none";
+  };
+
+  window.setVehicleCategoryFilter = (category) => {
+    vehicleCategoryFilter = ["all", "two", "four"].includes(category) ? category : "all";
+    localStorage.setItem("vr_vehicle_category_filter", vehicleCategoryFilter);
+    closeVehicleCategoryPopup();
+    draw();
+  };
+
   const vehicleCard = (v) => {
     const isOutOfStock = (v.stock ?? 0) <= 0;
     return `
@@ -204,30 +244,49 @@ function renderVehicles() {
     const vehicles = applyVehicleFilters(getData(storageKeys.vehicles));
     const twoWheelers = vehicles.filter((v) => twoWheelerTypes.has((v.type || "").toLowerCase()));
     const fourWheelers = vehicles.filter((v) => !twoWheelerTypes.has((v.type || "").toLowerCase()));
+    const visibleVehicles = vehicleCategoryFilter === "two"
+      ? twoWheelers
+      : vehicleCategoryFilter === "four"
+        ? fourWheelers
+        : vehicles;
 
-    if (!vehicles.length) {
+    if (!visibleVehicles.length) {
       wrap.innerHTML = `<div class="card"><p>No vehicles found for your search/filter.</p></div>`;
+      return;
+    }
+
+    if (vehicleCategoryFilter === "all") {
+      wrap.innerHTML = `
+        <div class="vehicle-category">
+          <h3>Four Wheelers</h3>
+          <div class="grid grid-3">
+            ${fourWheelers.length ? fourWheelers.map(vehicleCard).join("") : `<div class="card"><p>No four wheelers available.</p></div>`}
+          </div>
+        </div>
+        <div class="vehicle-category">
+          <h3>Two Wheelers</h3>
+          <div class="grid grid-3">
+            ${twoWheelers.length ? twoWheelers.map(vehicleCard).join("") : `<div class="card"><p>No two wheelers available.</p></div>`}
+          </div>
+        </div>
+      `;
       return;
     }
 
     wrap.innerHTML = `
       <div class="vehicle-category">
-        <h3>Four Wheelers</h3>
+        <h3>${categoryTitle[vehicleCategoryFilter]}</h3>
         <div class="grid grid-3">
-          ${fourWheelers.length ? fourWheelers.map(vehicleCard).join("") : `<div class="card"><p>No four wheelers available.</p></div>`}
-        </div>
-      </div>
-      <div class="vehicle-category">
-        <h3>Two Wheelers</h3>
-        <div class="grid grid-3">
-          ${twoWheelers.length ? twoWheelers.map(vehicleCard).join("") : `<div class="card"><p>No two wheelers available.</p></div>`}
+          ${visibleVehicles.map(vehicleCard).join("")}
         </div>
       </div>
     `;
   };
 
+  vehicleCategoryFilter = localStorage.getItem("vr_vehicle_category_filter") || "all";
   document.getElementById("vehicleSearch")?.addEventListener("input", draw);
   document.getElementById("vehicleSort")?.addEventListener("change", draw);
+  openVehicleCategoryPopup();
   draw();
 }
 
