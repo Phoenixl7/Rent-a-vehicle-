@@ -795,9 +795,12 @@ function adminPage() {
           : "No reports"}
       </td>
       <td>
-        <button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>
-        <button class="btn" onclick="updateBooking('${b.id}', 'delivered')">Mark Delivered</button>
-        <button class="btn btn-danger" onclick="updateBooking('${b.id}', 'cancelled')">Cancel</button>
+        ${b.status === "delivered"
+          ? "-"
+          : `<button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>
+             <button class="btn" onclick="updateBooking('${b.id}', 'delivered')">Mark Delivered</button>
+             <button class="btn btn-danger" onclick="updateBooking('${b.id}', 'cancelled')">Cancel</button>`
+        }
       </td>
     </tr>
   `).join("");
