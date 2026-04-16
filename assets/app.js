@@ -700,7 +700,6 @@ function markBookingReturned(bookingId) {
     setData(storageKeys.vehicles, vehicles);
   }
 
-  alert("Booking marked as returned.");
   renderMyBookings();
 }
 
