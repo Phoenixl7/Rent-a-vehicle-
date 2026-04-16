@@ -295,3 +295,22 @@ label { color: var(--muted); font-size: 0.92rem; }
 .vehicle-category h3 {
   margin: 0 0 10px;
 }
+
+.return-popup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 9999;
+  padding: 16px;
+}
+
+.return-popup-card {
+  width: min(520px, 100%);
+  border: 1px solid var(--border);
+  background: #11131c;
+  border-radius: 14px;
+  padding: 18px;
+}

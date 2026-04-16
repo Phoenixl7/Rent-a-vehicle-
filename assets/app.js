@@ -17,6 +17,8 @@ const defaultVehicles = [
   { id: "v8", name: "TVS Ntorq 125", type: "Scooter", price: 1099, image: "assets/images/bike-scooter.svg", seats: 2, fuel: "Petrol", transmission: "CVT", description: "Sporty scooter with agile handling, ideal for city commutes.", stock: 7 },
 ];
 
+let pendingReturnBookingId = null;
+
 function getData(key, fallback = []) {
   return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
 }
@@ -601,7 +603,7 @@ function renderMyBookings() {
             <div class="booking-actions">
               ${canCancel ? `<button class="btn btn-danger" onclick="cancelBooking('${b.id}')">Cancel</button>` : ""}
               ${canReportDamage ? `<button class="btn" onclick="toggleDamageReportForm('${b.id}')">Report Damage/Accident</button>` : ""}
-              ${canMarkReturned ? `<button class="btn btn-primary" onclick="markBookingReturned('${b.id}')">Mark as Returned</button>` : ""}
+              ${canMarkReturned ? `<button class="btn btn-primary" onclick="openReturnPopup('${b.id}')">Mark as Returned</button>` : ""}
             </div>
           ` : "-"}
           ${canReportDamage ? `
@@ -641,6 +643,44 @@ function markBookingReturned(bookingId) {
 
   alert("Booking marked as returned.");
   renderMyBookings();
+}
+
+function ensureReturnPopup() {
+  if (document.getElementById("returnPopup")) return;
+  document.body.insertAdjacentHTML("beforeend", `
+    <div id="returnPopup" class="return-popup-overlay" style="display:none;">
+      <div class="return-popup-card">
+        <h3>Confirm Vehicle Return</h3>
+        <p class="small">Are you sure you want to mark this booking as returned? This action will update booking status and add stock back.</p>
+        <div class="booking-actions" style="margin-top:12px;">
+          <button class="btn btn-primary" type="button" onclick="confirmReturnPopup()">Yes, Mark Returned</button>
+          <button class="btn" type="button" onclick="closeReturnPopup()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function openReturnPopup(bookingId) {
+  ensureReturnPopup();
+  pendingReturnBookingId = bookingId;
+  const popup = document.getElementById("returnPopup");
+  if (!popup) return;
+  popup.style.display = "flex";
+}
+
+function closeReturnPopup() {
+  pendingReturnBookingId = null;
+  const popup = document.getElementById("returnPopup");
+  if (!popup) return;
+  popup.style.display = "none";
+}
+
+function confirmReturnPopup() {
+  if (!pendingReturnBookingId) return;
+  const bookingId = pendingReturnBookingId;
+  closeReturnPopup();
+  markBookingReturned(bookingId);
 }
 
 function toggleDamageReportForm(bookingId) {
@@ -1082,6 +1122,9 @@ window.deleteVehicle = deleteVehicle;
 window.updateBooking = updateBooking;
 window.cancelBooking = cancelBooking;
 window.markBookingReturned = markBookingReturned;
+window.openReturnPopup = openReturnPopup;
+window.closeReturnPopup = closeReturnPopup;
+window.confirmReturnPopup = confirmReturnPopup;
 window.removeVehicleImage = removeVehicleImage;
 window.clearVehicleImages = clearVehicleImages;
 window.openImagePreview = openImagePreview;
