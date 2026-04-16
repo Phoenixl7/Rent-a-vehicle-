@@ -893,11 +893,13 @@ function adminPage() {
           : "No reports"}
       </td>
       <td>
-        ${b.status === "delivered"
+        ${b.status === "returned" || b.status === "delivered" || b.status === "cancelled"
           ? "-"
-          : `<button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>
-             <button class="btn" onclick="updateBooking('${b.id}', 'delivered')">Mark Delivered</button>
-             <button class="btn btn-danger" onclick="updateBooking('${b.id}', 'cancelled')">Cancel</button>`
+          : b.status === "approved"
+            ? `<button class="btn" onclick="updateBooking('${b.id}', 'delivered')">Mark Delivered</button>
+               <button class="btn btn-danger" onclick="updateBooking('${b.id}', 'cancelled')">Cancel</button>`
+            : `<button class="btn btn-primary" onclick="updateBooking('${b.id}', 'approved')">Approve</button>
+               <button class="btn btn-danger" onclick="updateBooking('${b.id}', 'cancelled')">Cancel</button>`
         }
       </td>
     </tr>
