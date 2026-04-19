@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Rental System</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    body.index-page {
+      background-image: linear-gradient(rgba(7, 7, 12, 0.68), rgba(7, 7, 12, 0.68)), url("assests/images/carsbg.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+  </style>
+</head>
+<body class="index-page">
+  <header class="navbar">
+    <div class="container nav-content">
+      <a class="logo" href="index.html">RentAVehicle</a>
+      <nav class="nav-links">
+        <a href="vehicles.html">Vehicles</a><a href="my-bookings.html">My Bookings</a>
+      </nav>
+      <div id="sessionArea"></div>
+    </div>
+  </header>
+
+  <main class="container home-shell">
+    <section class="hero-clean card">
+      <div class="hero-content-bg">
+        <p class="small">RentAVehicle</p>
+        <h1>Clean. Fast. Reliable rentals.</h1>
+        <p>Looking for a vehicle? You're at the right place. Driving your dreams to reality with an exquisite fleet of versatile vehicles.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="vehicles.html">Explore Vehicles</a>
+          <a class="btn" href="signup.html">Create Account</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section grid grid-3">
+      <div class="card"><h3>Easy Booking</h3><p class="small">Select vehicle, set delivery/return info, and confirm in a few steps.</p></div>
+      <div class="card"><h3>No Hidden Charges</h3><p class="small">What you see is what you pay.</p></div>
+      <div class="card"><h3>Well Maintained vehicles</h3><p class="small">Regular service and maintenance. Inspected before each trip.</p></div>
+    </section>
+  </main>
+  <footer class="footer">© RentAVehicle</footer>
+  <script src="assets/app.js"></script>
+</body>
+</html>
