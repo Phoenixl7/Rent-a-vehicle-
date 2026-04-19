@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Panel</title><link rel="stylesheet" href="assets/styles.css"></head><body>
+<header class="navbar"><div class="container nav-content"><a class="logo" href="index.html">RentAVehicle Admin</a><div id="sessionArea"></div></div></header>
+<main class="container section" id="adminGuard">
+  <h2>Admin Dashboard</h2>
+  <div class="grid grid-3">
+    <div class="card"><div class="small">Total Users</div><div class="kpi" id="kpiUsers">0</div></div>
+    <div class="card"><div class="small">Total Bookings</div><div class="kpi" id="kpiBookings">0</div></div>
+    <div class="card"><div class="small">Revenue</div><div class="kpi" id="kpiRevenue">₹0</div></div>
+  </div>
+
+  <section class="section">
+    <h3>Manage Vehicles</h3>
+    <div class="grid grid-2">
+      <div class="card"><form id="vehicleForm">
+        <input type="hidden" id="vehicleId">
+        <label>Vehicle Image</label><input id="vehicleImageFile" type="file" accept="image/*" multiple><input type="hidden" id="vehicleImageExisting"><div id="vehicleImagePreview" class="small"></div>
+        <label>Name</label><input id="vehicleName" required>
+        <label>Type</label><input id="vehicleType" required>
+        <label>Stock</label><input id="vehicleStock" type="number" min="0" required>
+        <label>Price / Day</label><input id="vehiclePrice" type="number" required>
+        <label>Seats</label><input id="vehicleSeats" type="number" required>
+        <label>Fuel</label><input id="vehicleFuel" required>
+        <label>Transmission</label><input id="vehicleTransmission" required>
+        <label>Description</label><textarea id="vehicleDescription" required></textarea>
+        <button class="btn btn-primary" type="submit">Save Vehicle</button>
+      </form></div>
+      <div class="card table-wrap"><table><thead><tr><th>Name</th><th>Type</th><th>Stock</th><th>Price</th><th>Actions</th></tr></thead><tbody id="vehicleAdminRows"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h3>Manage Bookings</h3>
+    <div class="card table-wrap"><table><thead><tr><th>User</th><th>Vehicle</th><th>Delivery Address</th><th>Total</th><th>Status</th><th>Damage Reports</th><th>Actions</th></tr></thead><tbody id="bookingAdminRows"></tbody></table></div>
+  </section>
+
+  <section class="section">
+    <h3>Manage Users</h3>
+    <div class="card table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Verification</th><th>Documents</th><th>Action</th></tr></thead><tbody id="userAdminRows"></tbody></table></div>
+  </section>
+</main>
+<script src="assets/app.js"></script></body></html>
