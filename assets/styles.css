@@ -70,6 +70,10 @@ a { color: inherit; text-decoration: none; }
 .hero-clean {
   text-align: center;
   padding: 34px 24px;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .hero-clean h1 {
