@@ -709,7 +709,7 @@ function ensureReturnPopup() {
     <div id="returnPopup" class="return-popup-overlay" style="display:none;">
       <div class="return-popup-card">
         <h3>Confirm Vehicle Return</h3>
-        <p class="small">Are you sure you want to mark this booking as returned? This action will update booking status and add stock back.</p>
+        <p class="small">Thanks for using our service.</p>
         <div class="booking-actions" style="margin-top:12px;">
           <button class="btn btn-primary" type="button" onclick="confirmReturnPopup()">Yes, Mark Returned</button>
           <button class="btn" type="button" onclick="closeReturnPopup()">Cancel</button>
