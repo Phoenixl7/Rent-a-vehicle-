@@ -774,7 +774,6 @@ function submitDamageReport(event, bookingId) {
     const current = Array.isArray(bookings[idx].damageReports) ? bookings[idx].damageReports : [];
     bookings[idx].damageReports = [report, ...current];
     setData(storageKeys.bookings, bookings);
-    alert("Damage/accident report submitted successfully.");
     renderMyBookings();
   });
 }
