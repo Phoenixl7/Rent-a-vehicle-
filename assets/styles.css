@@ -76,6 +76,17 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
 }
 
+
+.hero-content-bg {
+  background: linear-gradient(180deg, rgba(15, 15, 24, 0.86), rgba(9, 9, 15, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 42px);
+  width: min(900px, 100%);
+  margin: 0 auto;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+}
+
 .hero-clean h1 {
   margin: 8px 0 10px;
   font-size: clamp(2rem, 5vw, 3.2rem);
