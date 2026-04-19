@@ -74,10 +74,17 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-image: linear-gradient(rgba(8, 8, 12, 0.62), rgba(8, 8, 12, 0.62)), url("images/car-luxury.svg");
+  background-size: cover;
+  background-position: center;
 }
 
 
 .hero-content-bg {
+  position: relative;
+  z-index: 1;
   background: linear-gradient(180deg, rgba(15, 15, 24, 0.86), rgba(9, 9, 15, 0.78));
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
