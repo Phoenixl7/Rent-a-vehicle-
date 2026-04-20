@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <rect width="1200" height="700" fill="#1f2937"/>
+  <circle cx="360" cy="520" r="80" fill="#111827"/><circle cx="850" cy="520" r="80" fill="#111827"/>
+  <path d="M210 470 L320 360 Q420 280 590 280 L780 280 Q900 280 980 360 L1030 430 L1030 470 Z" fill="#60a5fa"/>
+  <rect x="455" y="320" width="250" height="95" rx="14" fill="#bfdbfe"/>
+  <text x="50%" y="90%" fill="#9ca3af" font-size="42" text-anchor="middle" font-family="Arial">RentAVehicle</text>
+</svg>
