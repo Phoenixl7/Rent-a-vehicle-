@@ -19,6 +19,10 @@ const defaultVehicles = [
 
 let pendingReturnBookingId = null;
 let vehicleCategoryFilter = "all";
+const vehicleDetailCarousel = {
+  images: [],
+  index: 0,
+};
 
 function getData(key, fallback = []) {
   return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
@@ -303,10 +307,19 @@ function renderVehicleDetails() {
   localStorage.setItem("vr_selected_vehicle", id);
   const sessionUser = getSessionUser();
   const isAdminUser = sessionUser?.role === "admin";
+  const images = getVehicleImages(v);
+  vehicleDetailCarousel.images = images;
+  vehicleDetailCarousel.index = 0;
 
   target.innerHTML = `
     <div class="card">
-      ${getVehicleImages(v).map((img)=>`<img class="vehicle-hero vehicle-zoomable" src="${img}" alt="${v.name}" onclick="openImagePreview('${img}')" onerror="this.src='assets/images/car-default.svg'">`).join("")}<h2>${v.name}</h2>
+      <div class="vehicle-carousel">
+        <button class="carousel-arrow" type="button" onclick="changeVehicleDetailImage(-1)" aria-label="Previous image">‹</button>
+        <img id="vehicleDetailHeroImage" class="vehicle-hero vehicle-zoomable" src="${images[0]}" alt="${v.name}" onclick="openVehicleDetailPreview()" onerror="this.src='assets/images/car-default.svg'">
+        <button class="carousel-arrow" type="button" onclick="changeVehicleDetailImage(1)" aria-label="Next image">›</button>
+      </div>
+      <p id="vehicleDetailImageCount" class="small"></p>
+      <h2>${v.name}</h2>
       <p>${v.description}</p>
       <p><strong>Type:</strong> ${v.type}</p>
       <p><strong>Transmission:</strong> ${v.transmission}</p>
@@ -322,7 +335,37 @@ function renderVehicleDetails() {
     </div>
   `;
 
+  updateVehicleDetailImageUi();
   ensureImagePreviewModal();
+}
+
+function updateVehicleDetailImageUi() {
+  const imageEl = document.getElementById("vehicleDetailHeroImage");
+  const countEl = document.getElementById("vehicleDetailImageCount");
+  if (!imageEl || !countEl || !vehicleDetailCarousel.images.length) return;
+
+  const total = vehicleDetailCarousel.images.length;
+  const index = vehicleDetailCarousel.index;
+  imageEl.src = vehicleDetailCarousel.images[index];
+  countEl.textContent = `Image ${index + 1} of ${total}`;
+
+  const arrows = Array.from(document.querySelectorAll(".vehicle-carousel .carousel-arrow"));
+  arrows.forEach((arrow) => {
+    arrow.disabled = total <= 1;
+  });
+}
+
+function changeVehicleDetailImage(step) {
+  if (!vehicleDetailCarousel.images.length) return;
+  const total = vehicleDetailCarousel.images.length;
+  vehicleDetailCarousel.index = (vehicleDetailCarousel.index + step + total) % total;
+  updateVehicleDetailImageUi();
+}
+
+function openVehicleDetailPreview() {
+  if (!vehicleDetailCarousel.images.length) return;
+  const current = vehicleDetailCarousel.images[vehicleDetailCarousel.index] || "assets/images/car-default.svg";
+  openImagePreview(current);
 }
 
 function ensureImagePreviewModal() {
@@ -1188,6 +1231,8 @@ window.removeVehicleImage = removeVehicleImage;
 window.clearVehicleImages = clearVehicleImages;
 window.openImagePreview = openImagePreview;
 window.closeImagePreview = closeImagePreview;
+window.changeVehicleDetailImage = changeVehicleDetailImage;
+window.openVehicleDetailPreview = openVehicleDetailPreview;
 window.viewDamageReports = viewDamageReports;
 window.toggleDamageReportForm = toggleDamageReportForm;
 window.submitDamageReport = submitDamageReport;
