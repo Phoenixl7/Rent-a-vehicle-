@@ -1034,12 +1034,23 @@ function adminPage() {
       try {
         setData(storageKeys.vehicles, list);
       } catch (error) {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Save Vehicle";
+        const fallbackPayload = {
+          ...payload,
+          image: "assets/images/car-default.svg",
+          images: ["assets/images/car-default.svg"],
+        };
+        if (idx >= 0) list[idx] = fallbackPayload; else list[list.length - 1] = fallbackPayload;
+        try {
+          setData(storageKeys.vehicles, list);
+          alert("Vehicle saved without uploaded image because browser storage limit was reached.");
+        } catch (fallbackError) {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Save Vehicle";
+          }
+          alert("Unable to save vehicle. Browser storage is full. Please remove some old vehicle images and try again.");
+          return;
         }
-        alert("Unable to save vehicle. Selected image may be too large for browser storage. Try a smaller/compressed image.");
-        return;
       }
       resetVehicleImageEditor();
       location.reload();
@@ -1076,8 +1087,8 @@ function readVehicleImageFile(file) {
       const rawData = reader.result;
       const image = new Image();
       image.onload = () => {
-        const maxWidth = 1280;
-        const maxHeight = 720;
+        const maxWidth = 960;
+        const maxHeight = 540;
         const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
         const width = Math.max(1, Math.round(image.width * scale));
         const height = Math.max(1, Math.round(image.height * scale));
@@ -1091,7 +1102,7 @@ function readVehicleImageFile(file) {
           return;
         }
         ctx.drawImage(image, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.78));
+        resolve(canvas.toDataURL("image/jpeg", 0.65));
       };
       image.onerror = () => resolve(rawData);
       image.src = rawData;
