@@ -975,6 +975,7 @@ function adminPage() {
   }).join("");
 
   const vehicleForm = document.getElementById("vehicleForm");
+  if (!vehicleForm) return;
   resetVehicleImageEditor();
   vehicleForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -983,7 +984,12 @@ function adminPage() {
     const imageFile = document.getElementById("vehicleImageFile").files.length > 0;
 
     const saveVehicle = (imageDataList) => {
-      const existingImages = existingImage ? JSON.parse(existingImage) : [];
+      let existingImages = [];
+      try {
+        existingImages = existingImage ? JSON.parse(existingImage) : [];
+      } catch (error) {
+        existingImages = [];
+      }
       const finalImages = (imageDataList && imageDataList.length ? imageDataList : existingImages);
 
       const payload = {
@@ -1014,11 +1020,16 @@ function adminPage() {
       let processed = 0;
       files.forEach((file) => {
         const reader = new FileReader();
-        reader.onload = () => {
-          images.push(reader.result);
+        const finalizeRead = () => {
           processed += 1;
           if (processed === files.length) saveVehicle(images);
         };
+        reader.onload = () => {
+          images.push(reader.result);
+          finalizeRead();
+        };
+        reader.onerror = finalizeRead;
+        reader.onabort = finalizeRead;
         reader.readAsDataURL(file);
       });
     } else {
