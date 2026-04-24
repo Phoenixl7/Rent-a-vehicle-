@@ -1013,6 +1013,11 @@ function adminPage() {
     const id = document.getElementById("vehicleId").value || `v${Date.now()}`;
     const existingImage = document.getElementById("vehicleImageExisting").value;
     const imageFile = document.getElementById("vehicleImageFile").files.length > 0;
+    const submitBtn = vehicleForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Saving...";
+    }
 
     const saveVehicle = (imageDataList) => {
       let existingImages = [];
@@ -1045,7 +1050,19 @@ function adminPage() {
       location.reload();
     };
 
+    let parsedExistingImages = [];
+    try {
+      parsedExistingImages = existingImage ? JSON.parse(existingImage) : [];
+    } catch (error) {
+      parsedExistingImages = [];
+    }
+
     if (imageFile) {
+      if (parsedExistingImages.length) {
+        saveVehicle(parsedExistingImages);
+        return;
+      }
+
       const files = Array.from(document.getElementById("vehicleImageFile").files || []);
       const images = [];
       let processed = 0;
