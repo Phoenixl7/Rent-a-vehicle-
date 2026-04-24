@@ -977,6 +977,37 @@ function adminPage() {
   const vehicleForm = document.getElementById("vehicleForm");
   if (!vehicleForm) return;
   resetVehicleImageEditor();
+  const vehicleImageInput = document.getElementById("vehicleImageFile");
+  if (vehicleImageInput) {
+    vehicleImageInput.addEventListener("change", () => {
+      const files = Array.from(vehicleImageInput.files || []);
+      if (!files.length) {
+        renderVehicleImageEditor([]);
+        return;
+      }
+
+      const images = [];
+      let processed = 0;
+      files.forEach((file) => {
+        const reader = new FileReader();
+        const finish = () => {
+          processed += 1;
+          if (processed === files.length) {
+            const name = document.getElementById("vehicleName").value || "Vehicle";
+            renderVehicleImageEditor(images, name);
+          }
+        };
+        reader.onload = () => {
+          images.push(reader.result);
+          finish();
+        };
+        reader.onerror = finish;
+        reader.onabort = finish;
+        reader.readAsDataURL(file);
+      });
+    });
+  }
+
   vehicleForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("vehicleId").value || `v${Date.now()}`;
