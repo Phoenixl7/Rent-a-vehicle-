@@ -1045,7 +1045,16 @@ function adminPage() {
       const list = getData(storageKeys.vehicles);
       const idx = list.findIndex((v) => v.id === id);
       if (idx >= 0) list[idx] = payload; else list.push(payload);
-      setData(storageKeys.vehicles, list);
+      try {
+        setData(storageKeys.vehicles, list);
+      } catch (error) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Save Vehicle";
+        }
+        alert("Unable to save vehicle. Selected image may be too large for browser storage. Try a smaller/compressed image.");
+        return;
+      }
       resetVehicleImageEditor();
       location.reload();
     };
