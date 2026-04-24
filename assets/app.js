@@ -985,25 +985,11 @@ function adminPage() {
         renderVehicleImageEditor([]);
         return;
       }
-
-      const images = [];
-      let processed = 0;
-      files.forEach((file) => {
-        const reader = new FileReader();
-        const finish = () => {
-          processed += 1;
-          if (processed === files.length) {
-            const name = document.getElementById("vehicleName").value || "Vehicle";
-            renderVehicleImageEditor(images, name);
-          }
-        };
-        reader.onload = () => {
-          images.push(reader.result);
-          finish();
-        };
-        reader.onerror = finish;
-        reader.onabort = finish;
-        reader.readAsDataURL(file);
+      const limitedFiles = files.slice(0, 6);
+      Promise.all(limitedFiles.map(readVehicleImageFile)).then((images) => {
+        const optimized = images.filter(Boolean);
+        const name = document.getElementById("vehicleName").value || "Vehicle";
+        renderVehicleImageEditor(optimized, name);
       });
     });
   }
@@ -1073,25 +1059,46 @@ function adminPage() {
       }
 
       const files = Array.from(document.getElementById("vehicleImageFile").files || []);
-      const images = [];
-      let processed = 0;
-      files.forEach((file) => {
-        const reader = new FileReader();
-        const finalizeRead = () => {
-          processed += 1;
-          if (processed === files.length) saveVehicle(images);
-        };
-        reader.onload = () => {
-          images.push(reader.result);
-          finalizeRead();
-        };
-        reader.onerror = finalizeRead;
-        reader.onabort = finalizeRead;
-        reader.readAsDataURL(file);
+      const limitedFiles = files.slice(0, 6);
+      Promise.all(limitedFiles.map(readVehicleImageFile)).then((images) => {
+        saveVehicle(images.filter(Boolean));
       });
     } else {
       saveVehicle([]);
     }
+  });
+}
+
+function readVehicleImageFile(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const rawData = reader.result;
+      const image = new Image();
+      image.onload = () => {
+        const maxWidth = 1280;
+        const maxHeight = 720;
+        const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+        const width = Math.max(1, Math.round(image.width * scale));
+        const height = Math.max(1, Math.round(image.height * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(rawData);
+          return;
+        }
+        ctx.drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+      image.onerror = () => resolve(rawData);
+      image.src = rawData;
+    };
+    reader.onerror = () => resolve(null);
+    reader.onabort = () => resolve(null);
+    reader.readAsDataURL(file);
   });
 }
 
